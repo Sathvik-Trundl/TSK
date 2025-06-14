@@ -1,0 +1,103 @@
+modules:
+  jira:adminPage:
+    - key: tpk-admin-page
+      resource: tpk-frontend
+      resolver:
+        function: tpk-resolver
+      title: TPK CAB
+      layout: blank
+      sections:
+        - header: Configurations
+          pages:
+            - title: User Management
+              route: "/user-management"
+  action:
+    - key: submit-test-cab
+      name: Submit Test CAB
+      description: Test Rovo
+      function: handle-rovo-command
+      actionVerb: GET
+      input:
+        fields:
+          - name: projectKey
+            label: Project Key
+            type: string
+            required: true
+  rovo:agent:
+    - key: rovo-agent
+      name: Rovo Agent
+      description: Rovo Agent
+      actions:
+        - submit-test-cab
+      conversationStarters:
+        - /fetchIssues
+        - get issues from project
+      prompt: >
+        You are a helpful agent which gets issues from the jira project and
+        sends them to Rovo.
+
+        you can perform one action that is to fetch issues from the jira project using project key.
+
+        To perform the actions: - /fetchIssues <projectKey>
+
+        1. /fetchIssues <projectKey>
+
+        If the project key is not given prompt the user to give a project key.
+
+  jira:projectPage:
+    - key: tpk-project-page
+      resource: tpk-frontend
+      resolver:
+        function: tpk-resolver
+      title: TPK CAB
+      layout: blank
+  jira:globalPage:
+    - key: tpk-global-page
+      resource: tpk-frontend
+      resolver:
+        function: tpk-resolver
+      title: TPK CAB
+      layout: blank
+  function:
+    - key: tpk-resolver
+      handler: index.handler
+    - key: handle-rovo-command
+      handler: index.rovoHandler
+resources:
+  - key: tpk-frontend
+    path: build
+    tunnel:
+      port: 3000
+app:
+  runtime:
+    name: nodejs22.x
+  id: ari:cloud:ecosystem::app/be76ac4f-b1a3-48b1-aa54-c086a63c1209
+  licensing:
+    enabled: true
+permissions:
+  scopes:
+    - read:jira-user
+    - storage:app
+    - manage:jira-configuration
+    - read:jira-work
+    - manage:jira-project
+    - write:jira-work
+  content:
+    styles:
+      - unsafe-inline
+    scripts:
+      - unsafe-inline
+      - unsafe-hashes
+  external:
+    images:
+      - "*.gravatar.com"
+      - "*.wp.com"
+      - "*.atl-paas.net"
+      - "*.atlassian.com"
+      - "*.atlassian.net"
+    scripts:
+      - "*.released.so"
+    fonts:
+      - "*.released.so"
+    styles:
+      - "*.released.so"
