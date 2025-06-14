@@ -28,6 +28,15 @@ modules:
   function:
     - key: tpk-resolver
       handler: index.handler
+    - key: run-migrations
+      handler: index.handler
+  scheduledTrigger:
+    - key: run-migrations-trigger
+      function: run-migrations
+      interval: hour
+  sql:
+    - key: main
+      engine: mysql
 resources:
   - key: tpk-frontend
     path: build

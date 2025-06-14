@@ -101,8 +101,6 @@ const IssuePicker = ({
     return options;
   }, [searchResults, value]);
 
-  console.log({ searchResults });
-
   const handleChange = (newValue: any) => {
     if (isMulti) {
       const ids = newValue?.map((opt: IssueSelectOption) => opt.value) || null;

@@ -25,6 +25,7 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: "build",
+      minify: "esbuild"
     },
     define: {
       "process.env": env,

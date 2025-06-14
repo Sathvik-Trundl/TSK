@@ -1,14 +1,33 @@
+// pages/HomePage.tsx
+import React, { useState } from "react";
 import Navigation from "./Navigation";
-import Card from "@components/globalPage/card";
+import Card from "@components/globalPage/Card";
 import { useSnapshot } from "valtio";
 import { globalPageStore } from "@libs/store";
-import CABChangeRequestModal from "@components/globalPage/RequestModal";
+import { trpcReact } from "@trpcClient/index";
+import Loader from "@components/Loader";
+import StatusTable from "@components/globalPage/StatusTable";
+import RequestDetailModal from "@components/globalPage/RequestDetailModal";
+import CABChangeRequestModal from "@components/globalPage/CABChangeRequestModal";
 
-const HomePage = () => {
+const HomePage: React.FC = () => {
   const globalSnap = useSnapshot(globalPageStore);
-  const requestModalClose = () => {
-    globalPageStore.openRequestModal = false;
+  const [selectedRequest, setSelectedRequest] = useState<ChangeRequest | null>(
+    null
+  );
+  const { data: requests, isLoading } =
+    trpcReact.globalPage.getAllChangeRequests.useQuery();
+
+  const handleApprove = (id: string) => {
+    console.log(id);
   };
+
+  const handleReject = (id: string) => {
+    console.log(id);
+  };
+
+  if (isLoading) return <Loader type="full" />;
+
   return (
     <div className="min-h-screen px-2 py-2">
       <div className="pb-2">
@@ -16,16 +35,29 @@ const HomePage = () => {
       </div>
       <div className="max-w-[90%] mx-auto rounded-xl shadow-md p-6 relative">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-          <Card title={"Upcoming meetings"}>
+          <Card title="Upcoming Meetings">
             <div>Hello</div>
           </Card>
-
-          <Card title={"Requests status"}>
-            <div>Hello</div>
+          <Card title="Requests Status">
+            {requests && (
+              <StatusTable
+                requests={requests}
+                onSelect={setSelectedRequest}
+                onApprove={handleApprove}
+                onReject={handleReject}
+              />
+            )}
           </Card>
         </div>
       </div>
-      <CABChangeRequestModal isOpen={globalSnap.openRequestModal} onClose={requestModalClose} />
+      <RequestDetailModal
+        request={selectedRequest}
+        onClose={() => setSelectedRequest(null)}
+      />
+      <CABChangeRequestModal
+        isOpen={globalSnap.openRequestModal}
+        onClose={() => (globalPageStore.openRequestModal = false)}
+      />
     </div>
   );
 };

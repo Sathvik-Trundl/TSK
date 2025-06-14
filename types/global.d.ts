@@ -14,6 +14,28 @@ declare global {
   };
 
   type ChangeRequest = {
+    id: string;
+    title: string;
+    requestedBy: User;
+    description: string;
+    reason: string;
+    impact: string;
+    changeWindow: ChangeWindow;
+    validationStatus: ChangeRequestStatus;
+    approvalStatus: ChangeRequestStatus;
+    phase: Phase;
+    projectId: string;
+    requiredApprovals: User[];
+    issueIds: string[];
+    additionalInfo: string;
+    createdAt: string;
+    updatedAt: string;
+    confluenceLink: string;
+    comments: Comment[];
+  };
+
+  type ChangeRequestStorage = {
+    id: string;
     title: string;
     requestedBy: string;
     description: string;
@@ -24,17 +46,17 @@ declare global {
     approvalStatus: ChangeRequestStatus;
     phase: Phase;
     projectId: string;
+    requiredApprovals: string[];
     issueIds: string[];
     additionalInfo: string;
     createdAt: string;
     updatedAt: string;
     confluenceLink: string;
-    comments: Comment[];
   };
 
   type Phase =
     | "Draft"
-    | "Validation pending"
+    | "Validation Pending"
     | "Valdation Rejected"
     | "Validation Approved"
     | "Planned"
@@ -42,8 +64,6 @@ declare global {
     | "In-Discussion"
     | "Approved"
     | "Rejected";
-
-  type ChangeRequestStatus = "Valid" | "Invalid" | "In-Progress" | "Done";
 
   type ChangeWindow = {
     start: string;
@@ -58,7 +78,8 @@ declare global {
   };
 
   type ChangeRequestForm = Omit<
-    ChangeRequest,
+    ChangeRequestStorage,
+    | "id"
     | "createdAt"
     | "updatedAt"
     | "comments"
@@ -66,6 +87,7 @@ declare global {
     | "approvalStatus"
     | "confluenceLink"
     | "changeWindow"
+    | "phase"
   >;
 
   type ChangeRequestStatus = "Pending" | "Approved" | "Rejected";
@@ -84,6 +106,7 @@ declare global {
   type Meetings = {
     id: string;
     title: string;
+    changeRequestId: string;
     description: string;
     date: string;
     attendees: string[];
