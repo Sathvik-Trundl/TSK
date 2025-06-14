@@ -4,19 +4,23 @@ import Navigation from "./Navigation";
 import Card from "@components/globalPage/Card";
 import { useSnapshot } from "valtio";
 import { globalPageStore } from "@libs/store";
-import { trpcReact } from "@trpcClient/index";
-import Loader from "@components/Loader";
+// import { trpcReact } from "@trpcClient/index";
+// import Loader from "@components/Loader";
 import StatusTable from "@components/globalPage/StatusTable";
 import RequestDetailModal from "@components/globalPage/RequestDetailModal";
 import CABChangeRequestModal from "@components/globalPage/CABChangeRequestModal";
+import { dummyChangeRequests } from "./changeRequestsData";
 
 const HomePage: React.FC = () => {
   const globalSnap = useSnapshot(globalPageStore);
   const [selectedRequest, setSelectedRequest] = useState<ChangeRequest | null>(
     null
   );
-  const { data: requests, isLoading } =
-    trpcReact.globalPage.getAllChangeRequests.useQuery();
+
+  // const { data: requests, isLoading } =
+  //   trpcReact.globalPage.getAllChangeRequests.useQuery();
+
+  const requests = dummyChangeRequests
 
   const handleApprove = (id: string) => {
     console.log(id);
@@ -26,7 +30,9 @@ const HomePage: React.FC = () => {
     console.log(id);
   };
 
-  if (isLoading) return <Loader type="full" />;
+  // if (isLoading) return <Loader type="full" />;
+
+  console.log(requests);
 
   return (
     <div className="min-h-screen px-2 py-2">

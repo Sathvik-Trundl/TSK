@@ -24,14 +24,14 @@ declare global {
     validationStatus: ChangeRequestStatus;
     approvalStatus: ChangeRequestStatus;
     phase: Phase;
-    projectId: string;
+    project: Project;
     requiredApprovals: User[];
     issueIds: string[];
     additionalInfo: string;
     createdAt: string;
     updatedAt: string;
     confluenceLink: string;
-    comments: Comment[];
+    comments: RequestComment[];
   };
 
   type ChangeRequestStorage = {
@@ -70,10 +70,19 @@ declare global {
     end: string;
   };
 
-  type Comment = {
+  type RequestCommentStorage = {
     id: string;
-    text: string;
-    authorId: string;
+    changeRequestId: string;
+    comment: string;
+    userId: string;
+    createdAt: string;
+  };
+
+  type RequestComment = {
+    id: string;
+    changeRequestId: string;
+    comment: string;
+    user: User;
     createdAt: string;
   };
 
@@ -94,14 +103,6 @@ declare global {
 
   type ChangeWindowPeriod = "week" | "month" | "year";
   type ChangeWindow = `${string}_${ChangeWindowPeriod}`;
-
-  type Comment = {
-    id: string;
-    userId: string;
-    comment: string;
-    changeRequestId: string;
-    createdAt: string;
-  };
 
   type Meetings = {
     id: string;
