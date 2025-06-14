@@ -1,48 +1,95 @@
-import React, { useState } from "react";
-import Select from "@atlaskit/select";
-
+import React, { useEffect, useState } from "react";
+import Select, { components } from "@atlaskit/select";
 import { trpcReact } from "@trpcClient/index";
 
-export type UserPickerProps = React.ComponentProps<typeof Select> & {
-  value?: User | null;
-  onChange?: (option: User | null) => void;
-  placeholder?: string;
+export type User = {
+  accountId: string;
+  displayName: string;
+  avatarUrls: { [size: string]: string }; // typically 48x48 or 24x24
 };
 
-// Helper to format user data into Atlaskit Select options
-const formatUserOptions = (users: User[]) =>
-  users.map((user) => ({
-    label: user.displayName as string,
-    value: user.accountId as string,
-  }));
+export type UserPickerProps = {
+  value?: { label: string; value: string; avatar: string } | null;
+  onChange?: (
+    option: { label: string; value: string; avatar: string } | null
+  ) => void;
+  placeholder?: string;
+  isDisabled?: boolean;
+};
+
+const UserOption = (props: any) => {
+  const { data, label } = props;
+  return (
+    <components.Option {...props}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <img
+          src={data.avatar}
+          alt={label}
+          style={{ width: 24, height: 24, borderRadius: "50%" }}
+        />
+        {label}
+      </div>
+    </components.Option>
+  );
+};
+
+const UserSingleValue = (props: any) => {
+  const { data } = props;
+  return (
+    <components.SingleValue {...props}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <img
+          src={data.avatar}
+          alt={data.label}
+          style={{ width: 20, height: 20, borderRadius: "50%" }}
+        />
+        {data.label}
+      </div>
+    </components.SingleValue>
+  );
+};
 
 const UserPicker = ({
   value,
   onChange,
   placeholder = "Select user...",
-  ...props
+  isDisabled,
 }: UserPickerProps) => {
-  const [input, setInput] = useState<string>("");
-  const { data: users, isLoading } = trpcReact.rest.queryUsers.useQuery(input, {
-    enabled: !!input,
-  });
+  const [input, setInput] = useState("");
+  const [debouncedInput, setDebouncedInput] = useState("");
 
-  const loadOptions = async (inputValue: string) => {
-    setInput(inputValue);
-    return formatUserOptions(users!);
-  };
+  const { data: users = [], isLoading } = trpcReact.rest.queryUsers.useQuery(
+    debouncedInput,
+    {
+      enabled: !!debouncedInput,
+    }
+  );
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedInput(input);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [input]);
+
+  const options = users.map((user) => ({
+    label: user.displayName,
+    value: user.accountId,
+    avatar: user.avatarUrls["24x24"] || user.avatarUrls["48x48"],
+  }));
 
   return (
     <Select
-      placeholder={placeholder}
-      loadOptions={loadOptions}
-      isLoading={isLoading}
+      options={options}
+      onInputChange={(val) => setInput(val)}
       onChange={onChange}
       value={value}
       isClearable
       isSearchable
-      // ...other props as needed
-      {...props}
+      placeholder={placeholder}
+      isLoading={isLoading}
+      isDisabled={isDisabled}
+      components={{ Option: UserOption, SingleValue: UserSingleValue }}
     />
   );
 };
