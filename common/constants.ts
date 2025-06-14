@@ -25,7 +25,14 @@ export const projectPageRoutes = {
   TIMELINE: "/timeline",
 } as const;
 
+export const StorageKVConstants = {
+  USER_MANAGEMENT_STORAGE: "userManagement",
+};
+
+export const storageKeys = {
+  USER_MANAGEMENT: (userId: string) => `UMG_${userId}`,
+};
+
 export const globalPageRoutes = {
   HOMEPAGE: "/",
 } as const;
-
