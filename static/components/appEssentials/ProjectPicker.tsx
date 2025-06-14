@@ -3,18 +3,19 @@ import Select from "@atlaskit/select";
 import { trpcReact } from "@trpcClient/index";
 
 // Types
-export type AtlassianUser = {
-  accountId: string;
-  displayName: string;
+export type AtassianProject = {
+  id: string;
+  name: string;
+  key: string;
   avatarUrls: { [size: string]: string };
 };
 
-export type UserSelectOption = {
+export type ProjectOption = {
   label: string;
   value: string;
 };
 
-export type UserPickerProps = {
+export type ProjectProps = {
   value?: string[] | null;
   onChange?: (value: string[] | null) => void;
   placeholder?: string;
@@ -23,30 +24,30 @@ export type UserPickerProps = {
 };
 
 // 🔁 Local Option Cache
-const userOptionCache = new Map<string, UserSelectOption>();
+const optionCache = new Map<string, ProjectOption>();
 
-const UserPicker = ({
+const ProjectPicker = ({
   value,
   onChange,
-  placeholder = "Select user...",
+  placeholder = "Select Project...",
   isDisabled,
   isMulti = false,
-}: UserPickerProps) => {
+}: ProjectProps) => {
   const [searchInput, setSearchInput] = useState("");
   const [debouncedInput, setDebouncedInput] = useState("");
 
   const { data: searchResults = [], isLoading: isSearching } =
-    trpcReact.rest.queryUsers.useQuery(debouncedInput, {
+    trpcReact.rest.queryProjects.useQuery(debouncedInput, {
       enabled: !!debouncedInput,
     });
 
   const uncachedIds = useMemo(() => {
     if (!value || !value.length) return [];
-    return value.filter((id) => !userOptionCache.has(id));
+    return value.filter((id) => !optionCache.has(id));
   }, [value]);
 
-  const { data: fetchedUsers = [], isLoading: isResolving } =
-    trpcReact.rest.getUsersByUserId.useQuery(uncachedIds, {
+  const { data: fetchProjects = [], isLoading: isResolving } =
+    trpcReact.rest.getProjectsById.useQuery(uncachedIds, {
       enabled: uncachedIds.length > 0,
     });
 
@@ -55,41 +56,41 @@ const UserPicker = ({
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const mapToOption = (user: AtlassianUser): UserSelectOption => ({
-    label: user.displayName,
-    value: user.accountId,
+  const mapToOption = (project: AtassianProject): ProjectOption => ({
+    label: project.name + " - " + project.key,
+    value: project.id,
   });
 
   useEffect(() => {
-    searchResults.forEach((user) => {
-      const option = mapToOption(user);
-      if (!userOptionCache.has(option.value)) {
-        userOptionCache.set(option.value, option);
+    searchResults.forEach((project) => {
+      const option = mapToOption(project);
+      if (!optionCache.has(option.value)) {
+        optionCache.set(option.value, option);
       }
     });
 
-    fetchedUsers.forEach((user) => {
-      const option = mapToOption(user);
-      if (!userOptionCache.has(option.value)) {
-        userOptionCache.set(option.value, option);
+    fetchProjects.forEach((project) => {
+      const option = mapToOption(project);
+      if (!optionCache.has(option.value)) {
+        optionCache.set(option.value, option);
       }
     });
-  }, [searchResults, fetchedUsers]);
+  }, [searchResults, fetchProjects]);
 
   const selectedOptions = useMemo(() => {
     if (!value || !value.length) return null;
     return value
-      .map((id) => userOptionCache.get(id))
-      .filter((opt): opt is UserSelectOption => !!opt);
+      .map((id) => optionCache.get(id))
+      .filter((opt): opt is ProjectOption => !!opt);
   }, [value]);
 
-  const allOptions: UserSelectOption[] = useMemo(() => {
+  const allOptions: ProjectOption[] = useMemo(() => {
     const seen = new Set<string>();
-    const options: UserSelectOption[] = [];
+    const options: ProjectOption[] = [];
 
     // Add from searchResults directly
-    searchResults.forEach((user) => {
-      const option = mapToOption(user);
+    searchResults.forEach((project) => {
+      const option = mapToOption(project);
       if (!seen.has(option.value)) {
         seen.add(option.value);
         options.push(option);
@@ -98,7 +99,7 @@ const UserPicker = ({
 
     // Add from selected values (via cache or fallback mapping)
     value?.forEach((id) => {
-      const option = userOptionCache.get(id) || {
+      const option = optionCache.get(id) || {
         label: id,
         value: id,
       };
@@ -114,13 +115,13 @@ const UserPicker = ({
   const handleSelectChange = (newValue: any) => {
     if (isMulti) {
       const ids = newValue
-        ? newValue.map((opt: UserSelectOption) => opt.value)
+        ? newValue.map((opt: ProjectOption) => opt.value)
         : null;
 
       // Optimistically cache selected options
-      newValue?.forEach((opt: UserSelectOption) => {
-        if (!userOptionCache.has(opt.value)) {
-          userOptionCache.set(opt.value, opt);
+      newValue?.forEach((opt: ProjectOption) => {
+        if (!optionCache.has(opt.value)) {
+          optionCache.set(opt.value, opt);
         }
       });
 
@@ -128,8 +129,8 @@ const UserPicker = ({
     } else {
       const id = newValue?.value ?? null;
 
-      if (newValue && !userOptionCache.has(newValue.value)) {
-        userOptionCache.set(newValue.value, newValue);
+      if (newValue && !optionCache.has(newValue.value)) {
+        optionCache.set(newValue.value, newValue);
       }
 
       onChange?.(id ? [id] : null);
@@ -148,7 +149,7 @@ const UserPicker = ({
       placeholder={placeholder}
       isDisabled={isDisabled}
       isLoading={isSearching || isResolving}
-      menuPortalTarget={document.getElementById("userSelect")}
+      menuPortalTarget={document.getElementById("projectSelect")}
       styles={{
         menuPortal: (base) => ({
           ...base,
@@ -159,4 +160,4 @@ const UserPicker = ({
   );
 };
 
-export default UserPicker;
+export default ProjectPicker;

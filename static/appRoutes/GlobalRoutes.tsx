@@ -3,7 +3,7 @@ import { view } from "@forge/bridge";
 import Loader from "@components/Loader";
 import { Route, Router, Routes } from "react-router";
 
-const HomePage = lazy(() => import("@pages/globalPage/HomePage"));
+const HomePage = lazy(() => import("@pages/globalPage"));
 
 export default function AdminPage() {
   const [history, setHistory] = useState<any>(null);

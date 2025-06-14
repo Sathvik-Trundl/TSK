@@ -1,6 +1,14 @@
 // import { z } from "zod";
 import { procedure, router } from "../trpcServer";
-import { getAllProjects, queryUsers } from "./functions";
+import {
+  getAllProjects,
+  getIssuesByIds,
+  getProjectsByIds,
+  getUsersByIds,
+  queryIssues,
+  queryProjects,
+  queryUsers,
+} from "./functions";
 
 export const restRouter = router({
   getAllProjects: procedure.query(async () => {
@@ -14,5 +22,38 @@ export const restRouter = router({
       const allUsers = await queryUsers(input);
       console.log("queryUsers-success");
       return allUsers;
+    }),
+  getUsersByUserId: procedure
+    .input((value) => value as string[])
+    .query(async ({ input }) => {
+      const allUsers = getUsersByIds(input);
+      return allUsers;
+    }),
+  queryProjects: procedure
+    .input((value) => value as string)
+    .query(async ({ input }) => {
+      const projects = await queryProjects(input);
+      console.log("queryProjects-success");
+      return projects;
+    }),
+
+  getProjectsById: procedure
+    .input((value) => value as string[])
+    .query(async ({ input }) => {
+      const projects = await getProjectsByIds(input);
+      return projects;
+    }),
+  queryIssues: procedure
+    .input((input) => input as { projectId: string; query: string })
+    .query(async ({ input }) => {
+      const issues = await queryIssues(input.projectId, input.query);
+      return issues;
+    }),
+
+  getIssuesById: procedure
+    .input((ids) => ids as string[])
+    .query(async ({ input }) => {
+      const issues = await getIssuesByIds(input);
+      return issues;
     }),
 });
