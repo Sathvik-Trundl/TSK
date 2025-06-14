@@ -89,6 +89,41 @@ declare global {
     attendees: string[];
     notes: string;
   };
+
+  type Project = {
+    archived?: boolean;
+    expand: string;
+    self: string;
+    id: string;
+    key: string;
+    name: string;
+    avatarUrls: AvatarUrls;
+    projectTypeKey: string;
+    simplified: boolean;
+    style: string;
+    isPrivate: boolean;
+    properties: object;
+    entityId?: string | null;
+    uuid?: string | null;
+  };
+
+  type AvatarUrls = {
+    "48x48": string;
+    "24x24": string;
+    "16x16": string;
+    "32x32": string;
+  };
+
+  type User = {
+    self: string;
+    accountId: string;
+    emailAddress: string;
+    avatarUrls: AvatarUrls;
+    displayName: string;
+    active: boolean;
+    timeZone: string;
+    accountType: string;
+  };
 }
 
 export {};

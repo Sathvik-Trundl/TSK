@@ -1,7 +1,9 @@
-// import { storage } from "@forge/api";
 import { mergeRouters, procedure, router } from "../trpcServer";
+
 export const commonRouter = router({
-  projectHello: procedure.query(async () => {
+  projectHello: procedure.query(async ({ ctx }) => {
+    console.log(ctx);
+
     return "projectHello";
   }),
 });
