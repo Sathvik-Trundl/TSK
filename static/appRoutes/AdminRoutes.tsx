@@ -5,6 +5,8 @@ import { Router, Route, Routes } from "react-router";
 
 const HomePage = lazy(() => import("@pages/adminPage"));
 
+const UserModal = lazy(() => import("@components/UserManagement/UserModal"));
+
 export default function AdminPage() {
   const [history, setHistory] = useState<any>(null);
   const [historyState, setHistoryState] = useState<any>(null);
@@ -54,6 +56,14 @@ export default function AdminPage() {
           element={
             <Suspense fallback={<Loader type="full" />}>
               <HomePage />
+            </Suspense>
+          }
+        ></Route>
+        <Route
+          path={`/user-management`}
+          element={
+            <Suspense fallback={<Loader type="full" />}>
+              <UserModal />
             </Suspense>
           }
         ></Route>

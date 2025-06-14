@@ -27,9 +27,19 @@ export const queryUsers = async (query: string) => {
     })
     .then((res) => res.json());
 
-  console.log({ allUsers });
+  const activeUsers = allUsers.filter(
+    (item) => item.accountType === "atlassian" && item.active
+  );
 
-  return allUsers;
+  return activeUsers;
+};
+
+export const getProjectByID = async (projectId: string | number) => {
+  const projectData: Project = await api
+    .asApp()
+    .requestJira(route`/rest/api/3/project/${projectId}`)
+    .then((res) => res.json());
+  return projectData;
 };
 
 export const getUsersByIds = async (userIds: string[]) => {

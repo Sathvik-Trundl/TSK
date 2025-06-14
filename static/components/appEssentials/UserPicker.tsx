@@ -46,7 +46,7 @@ const UserPicker = ({
   }, [value]);
 
   const { data: fetchedUsers = [], isLoading: isResolving } =
-    trpcReact.rest.getUsersByUserId.useQuery(uncachedIds, {
+    trpcReact.rest.getUsersByIds.useQuery(uncachedIds, {
       enabled: uncachedIds.length > 0,
     });
 

@@ -8,6 +8,7 @@ import {
   queryIssues,
   queryProjects,
   queryUsers,
+  getProjectByID,
 } from "./functions";
 
 export const restRouter = router({
@@ -23,10 +24,18 @@ export const restRouter = router({
       console.log("queryUsers-success");
       return allUsers;
     }),
-  getUsersByUserId: procedure
+  getUsersByIds: procedure
     .input((value) => value as string[])
     .query(async ({ input }) => {
-      const allUsers = getUsersByIds(input);
+      const allUsers = await getUsersByIds(input);
+      console.log("getUsersByIds-success");
+      return allUsers;
+    }),
+  getProjectByID: procedure
+    .input((value) => value as string | number)
+    .query(async ({ input }) => {
+      const allUsers = await getProjectByID(input);
+      console.log("getProjectByID-success");
       return allUsers;
     }),
   queryProjects: procedure
