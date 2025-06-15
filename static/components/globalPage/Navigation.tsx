@@ -13,7 +13,7 @@ export default function Navigation() {
         <a className="font-bold text-xl">CAB</a>
       </Link>
       <div className="flex gap-3">
-        {isUserLoggedIn && (
+        {false && isUserLoggedIn && (
           <Button
             appearance="discovery"
             iconBefore={(iconProps) => <PhoneCall {...iconProps} height={18} />}

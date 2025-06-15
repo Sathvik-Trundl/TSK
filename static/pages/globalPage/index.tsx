@@ -42,6 +42,7 @@ const HomePage: React.FC = () => {
     approveChangeRequest.mutate(id, {
       onSuccess: () => {
         refetchRequests();
+        globalPageStore.openMeetModal = true;
       },
       onError: (err) => {
         console.error("Approval failed:", err);
