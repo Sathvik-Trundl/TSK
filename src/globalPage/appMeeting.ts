@@ -179,6 +179,9 @@ export const meetingsRouter = router({
       .getMany();
 
     const results = data.results ?? [];
+    await Promise.all([
+      ...results.map((r) => storage.delete(r.key)),
+    ]);
     const meetings = await Promise.all(results.map((r) => toMeetings(r.value)));
     return { results: meetings };
   }),

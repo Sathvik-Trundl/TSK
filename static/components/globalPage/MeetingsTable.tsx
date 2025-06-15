@@ -110,7 +110,7 @@ const MeetingsTable: React.FC<MeetingsTableProps> = ({ meetings }) => {
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
-                  className="px-4 py-2 text-left bg-gray-100 cursor-pointer select-none"
+                  className="px-4 py-2 text-left dark:bg-gray-100/20 bg-gray-100/80 cursor-pointer select-none"
                   onClick={header.column.getToggleSortingHandler()}
                 >
                   {flexRender(

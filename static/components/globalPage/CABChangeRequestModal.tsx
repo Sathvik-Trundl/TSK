@@ -84,7 +84,7 @@ const CABChangeRequestModal = ({
           {/* LEFT COLUMN: FORM */}
           <div className="flex-1 px-8 py-6 flex flex-col min-h-0">
             <h2 className="text-2xl font-bold mb-6 text-blue-800">
-              {formData.title || "CAB Change Request Form"}
+              Change Request Form
             </h2>
             <div
               className="flex-grow overflow-y-auto pr-1"
@@ -93,100 +93,111 @@ const CABChangeRequestModal = ({
                 paddingBottom: 0,
               }}
             >
-              {/* Title */}
               <section className="mb-6">
-                <Field title="Request Title" htmlFor="title" />
-                <TextField
-                  id="title"
-                  name="title"
-                  placeholder="Enter change title"
-                  value={formData.title}
-                  onChange={(e) => handleChange("title", e.currentTarget.value)}
-                  width="100%"
-                />
+                <Field title="Request Title" htmlFor="title">
+                  <TextField
+                    id="title"
+                    name="title"
+                    placeholder="Enter change title"
+                    value={formData.title}
+                    onChange={(e) =>
+                      handleChange("title", e.currentTarget.value)
+                    }
+                    width="100%"
+                  />
+                </Field>
               </section>
-              {/* Description */}
+
               <section className="mb-6">
-                <Field title="Description" htmlFor="description" />
-                <TextArea
-                  id="description"
-                  name="description"
-                  placeholder="Describe the change"
-                  value={formData.description}
-                  onChange={(e) => handleChange("description", e.target.value)}
-                  style={{ width: "100%" }}
-                />
+                <Field title="Description" htmlFor="description">
+                  <TextArea
+                    id="description"
+                    name="description"
+                    placeholder="Describe the change"
+                    value={formData.description}
+                    onChange={(e) =>
+                      handleChange("description", e.target.value)
+                    }
+                    style={{ width: "100%" }}
+                  />
+                </Field>
               </section>
-              {/* Reason */}
+
               <section className="mb-6">
-                <Field title="Business Justification" htmlFor="reason" />
-                <TextArea
-                  id="reason"
-                  name="reason"
-                  placeholder="Provide the business justification"
-                  value={formData.reason}
-                  onChange={(e) => handleChange("reason", e.target.value)}
-                  style={{ width: "100%" }}
-                />
+                <Field title="Business Justification" htmlFor="reason">
+                  <TextArea
+                    id="reason"
+                    name="reason"
+                    placeholder="Provide the business justification"
+                    value={formData.reason}
+                    onChange={(e) => handleChange("reason", e.target.value)}
+                    style={{ width: "100%" }}
+                  />
+                </Field>
               </section>
-              {/* Project */}
+
               <section className="mb-6">
-                <Field title="Project" />
-                <ProjectPicker
-                  placeholder="Select Project"
-                  value={formData.projectId ? [formData.projectId] : null}
-                  onChange={(e) => handleChange("projectId", e ? e[0] : null)}
-                />
+                <Field title="Project">
+                  <ProjectPicker
+                    placeholder="Select Project"
+                    value={formData.projectId ? [formData.projectId] : null}
+                    onChange={(e) => handleChange("projectId", e ? e[0] : null)}
+                  />
+                </Field>
               </section>
-              {/* Related Issues */}
+
               <section className="mb-6">
-                <Field title="Related Issues" />
-                <IssuePicker
-                  projectId={formData.projectId}
-                  value={formData.issueIds ? [...formData.issueIds] : null}
-                  onChange={(e) => handleChange("issueIds", e ? e : null)}
-                  isMulti
-                />
+                <Field title="Related Issues">
+                  <IssuePicker
+                    projectId={formData.projectId}
+                    value={formData.issueIds ? [...formData.issueIds] : null}
+                    onChange={(e) => handleChange("issueIds", e ? e : null)}
+                    isMulti
+                  />
+                </Field>
               </section>
-              {/* Impact */}
+
               <section className="mb-6">
-                <Field title="Impact Assessment" htmlFor="impact" />
-                <TextArea
-                  id="impact"
-                  name="impact"
-                  placeholder="Describe the impact"
-                  value={formData.impact}
-                  onChange={(e) => handleChange("impact", e.target.value)}
-                  style={{ width: "100%" }}
-                />
+                <Field title="Impact Assessment" htmlFor="impact">
+                  <TextArea
+                    id="impact"
+                    name="impact"
+                    placeholder="Describe the impact"
+                    value={formData.impact}
+                    onChange={(e) => handleChange("impact", e.target.value)}
+                    style={{ width: "100%" }}
+                  />
+                </Field>
               </section>
-              {/* Approvals Required */}
+
               <section className="mb-6">
-                <Field title="Approvals Required" />
-                <UserPicker
-                  value={
-                    JSON.parse(
-                      JSON.stringify(formData.requiredApprovals)
-                    ) as string[]
-                  }
-                  onChange={(val) => handleChange("requiredApprovals", val)}
-                  placeholder="Select users"
-                  isMulti
-                />
+                <Field title="Approvals Required">
+                  <UserPicker
+                    value={
+                      JSON.parse(
+                        JSON.stringify(formData.requiredApprovals)
+                      ) as string[]
+                    }
+                    onChange={(val) => handleChange("requiredApprovals", val)}
+                    placeholder="Select users"
+                    isMulti
+                  />
+                </Field>
               </section>
-              {/* Additional Notes */}
+
               <section className="mb-6">
-                <Field title="Additional Notes" htmlFor="additionalInfo" />
-                <TextArea
-                  id="additionalInfo"
-                  name="additionalInfo"
-                  placeholder="Any additional notes"
-                  value={formData.additionalInfo}
-                  onChange={(e) =>
-                    handleChange("additionalInfo", e.target.value)
-                  }
-                  style={{ width: "100%" }}
-                />
+                <Field title="Additional Notes" htmlFor="additionalInfo">
+                  <TextArea
+                    id="additionalInfo"
+                    name="additionalInfo"
+                    placeholder="Any additional notes"
+                    value={formData.additionalInfo}
+                    onChange={(e) =>
+                      handleChange("additionalInfo", e.target.value)
+                    }
+                    style={{ width: "100%" }}
+                  />
+                </Field>
               </section>
             </div>
             {/* Sticky Actions */}
