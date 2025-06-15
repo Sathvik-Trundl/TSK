@@ -40,7 +40,7 @@ function toMeetingsStorage(meeting: Meetings): MeetingsStorage {
       timeZone: meeting.timeZone,
     },
     end: {
-      dateTime: meeting.startDate + "T" + meeting.endTime,
+      dateTime: meeting.endDate + "T" + meeting.endTime,
       timeZone: meeting.timeZone,
     },
     startDate: meeting.startDate,
@@ -73,7 +73,7 @@ async function toMeetingRun(meeting: Meetings) {
       timeZone: meeting.timeZone,
     },
     end: {
-      dateTime: meeting.startDate + "T" + meeting.endTime,
+      dateTime: meeting.endDate + "T" + meeting.endTime,
       timeZone: meeting.timeZone,
     },
     attendees,
