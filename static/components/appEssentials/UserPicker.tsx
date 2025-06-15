@@ -31,6 +31,7 @@ const UserPicker = ({
   placeholder = "Select user...",
   isDisabled,
   isMulti = false,
+  ...props
 }: UserPickerProps) => {
   const [searchInput, setSearchInput] = useState("");
   const [debouncedInput, setDebouncedInput] = useState("");
@@ -155,6 +156,7 @@ const UserPicker = ({
           zIndex: 9999, // ensure it's above modals/dialogs etc.
         }),
       }}
+      {...props}
     />
   );
 };

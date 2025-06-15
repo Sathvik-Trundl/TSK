@@ -1,6 +1,6 @@
 // pages/HomePage.tsx
 import React, { useState } from "react";
-import Navigation from "./Navigation";
+import Navigation from "../../components/globalPage/Navigation";
 import Card from "@components/globalPage/Card";
 import { useSnapshot } from "valtio";
 import { globalPageStore } from "@libs/store";
@@ -9,6 +9,7 @@ import { globalPageStore } from "@libs/store";
 import StatusTable from "@components/globalPage/StatusTable";
 import RequestDetailModal from "@components/globalPage/RequestDetailModal";
 import CABChangeRequestModal from "@components/globalPage/CABChangeRequestModal";
+import MeetingModal from "@components/globalPage/MeetingModal";
 // import { dummyChangeRequests } from "./changeRequestsData";
 import { trpcReact } from "@trpcClient/index";
 import { Loader } from "lucide-react";
@@ -87,8 +88,16 @@ const HomePage: React.FC = () => {
       />
       <CABChangeRequestModal
         isOpen={globalSnap.openRequestModal}
-        onClose={() => (globalPageStore.openRequestModal = false)}
+        onClose={() => {
+          globalPageStore.openRequestModal = false;
+        }}
         refetchRequests={refetchRequests}
+      />
+      <MeetingModal
+        isOpen={globalSnap.openMeetModal}
+        onClose={() => {
+          globalPageStore.openMeetModal = false;
+        }}
       />
     </div>
   );

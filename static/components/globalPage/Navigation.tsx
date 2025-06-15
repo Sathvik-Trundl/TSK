@@ -7,7 +7,6 @@ const isUserLoggedIn = true;
 
 export default function Navigation() {
   // const meet = trpcReact.meetings.run.useQuery();
-
   return (
     <nav className="flex items-center justify-between w-full h-12 px-4">
       <Link href="/">
@@ -20,6 +19,7 @@ export default function Navigation() {
             iconBefore={(iconProps) => <PhoneCall {...iconProps} height={18} />}
             onClick={() => {
               globalPageStore.openMeetModal = true;
+              // meet.refetch();
             }}
           >
             Create Meet

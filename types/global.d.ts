@@ -106,26 +106,50 @@ declare global {
 
   type Meetings = {
     id: string;
-    title: string;
+    name: string;
     changeRequest: ChangeRequest;
     description: string;
-    date: string;
+    start: {
+      dateTime: string;
+      timeZone: string;
+    };
+    end: {
+      dateTime: string;
+      timeZone: string;
+    };
+    startDate: string;
+    endDate: string;
+    startTime: string;
+    endTime: string;
     attendees: User[];
     notes: string;
     createdAt: string;
     updatedAt: string;
+    timeZone: string;
   };
-  
+
   type MeetingsStorage = {
     id: string;
-    title: string;
+    name: string;
     changeRequestId: string;
     description: string;
-    date: string;
+    start: {
+      dateTime: string;
+      timeZone: string;
+    };
+    startDate: string;
+    endDate: string;
+    startTime: string;
+    endTime: string;
+    end: {
+      dateTime: string;
+      timeZone: string;
+    };
     attendees: string[];
     notes: string;
     createdAt: string;
     updatedAt: string;
+    timeZone: string;
   };
 
   type Project = {

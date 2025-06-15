@@ -4,6 +4,18 @@ import Loader from "@components/Loader";
 import { Route, Router, Routes } from "react-router";
 
 const HomePage = lazy(() => import("@pages/globalPage"));
+const KanbanBoard = lazy(() => import("@pages/globalPage/KanbanBoard"));
+
+const globalPageRoutes = [
+  {
+    path: "/",
+    component: <HomePage />,
+  },
+  {
+    path: "/kanban",
+    component: <KanbanBoard />,
+  },
+];
 
 export default function AdminPage() {
   const [history, setHistory] = useState<any>(null);
@@ -49,14 +61,16 @@ export default function AdminPage() {
       location={historyState.location}
     >
       <Routes>
-        <Route
-          path={"/"}
-          element={
-            <Suspense fallback={<Loader type="full" />}>
-              <HomePage />
-            </Suspense>
-          }
-        ></Route>
+        {globalPageRoutes.map((route) => (
+          <Route
+            path={route.path}
+            element={
+              <Suspense fallback={<Loader type="full" />}>
+                {route.component}
+              </Suspense>
+            }
+          ></Route>
+        ))}
       </Routes>
     </Router>
   );
