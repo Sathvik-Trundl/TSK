@@ -1,8 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import Modal, { ModalBody } from "@atlaskit/modal-dialog";
 import AvatarLabel from "@components/appEssentials/AvatarLabel";
 import PhaseLozenge from "@components/appEssentials/Lozenge";
 import Avatar from "@atlaskit/avatar";
+import Textfield from "@atlaskit/textfield";
+import Button from "@atlaskit/button";
+import { trpcReact } from "@trpcClient/index";
 
 interface RequestDetailModalProps {
   request: ChangeRequest | null;
@@ -13,6 +16,11 @@ const RequestDetailModal: React.FC<RequestDetailModalProps> = ({
   request,
   onClose,
 }) => {
+  const [newComment, setNewComment] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const addCommentMutation =
+    trpcReact.globalPage.addCommentToRequest.useMutation();
+
   if (!request) return null;
 
   const {
@@ -31,6 +39,29 @@ const RequestDetailModal: React.FC<RequestDetailModalProps> = ({
     comments,
   } = request;
 
+  const handleCommentSubmit = async () => {
+    if (!newComment.trim()) return;
+    setIsSubmitting(true);
+    try {
+      await addCommentMutation.mutateAsync({
+        requestId: request.id,
+        comment: newComment.trim(),
+      });
+
+      request.comments.push({
+        user: requestedBy,
+        comment: newComment.trim(),
+        createdAt: new Date().toISOString(),
+      });
+
+      setNewComment("");
+    } catch (err) {
+      console.error("Comment failed", err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Modal
       onClose={onClose}
@@ -41,17 +72,17 @@ const RequestDetailModal: React.FC<RequestDetailModalProps> = ({
     >
       <ModalBody>
         <div className="flex flex-row w-full bg-white max-h-[80vh]">
-          {/* LEFT COLUMN: Main Content */}
+          {/* LEFT COLUMN */}
           <div className="flex-1 px-8 py-6 pb-4 flex flex-col min-h-0">
             <h2 className="text-2xl font-bold mb-4 text-blue-800">{title}</h2>
-            {/* Scrollable content - flex-grow and overflow-y-auto */}
             <div
               className="flex-grow overflow-y-auto"
               style={{
                 maxHeight: "calc(76vh - 64px)",
-                paddingBottom: "0px", // No need for bottom padding
+                paddingBottom: "0px",
               }}
             >
+              {/* Description */}
               <section className="mb-6">
                 <h3 className="text-lg font-semibold mb-2 text-gray-700">
                   Description
@@ -64,6 +95,8 @@ const RequestDetailModal: React.FC<RequestDetailModalProps> = ({
                   )}
                 </div>
               </section>
+
+              {/* Reason */}
               <section className="mb-6">
                 <h3 className="text-lg font-semibold mb-2 text-gray-700">
                   Reason
@@ -76,6 +109,8 @@ const RequestDetailModal: React.FC<RequestDetailModalProps> = ({
                   )}
                 </div>
               </section>
+
+              {/* Impact */}
               <section className="mb-6">
                 <h3 className="text-lg font-semibold mb-2 text-gray-700">
                   Impact
@@ -88,6 +123,8 @@ const RequestDetailModal: React.FC<RequestDetailModalProps> = ({
                   )}
                 </div>
               </section>
+
+              {/* Additional Info */}
               <section className="mb-4">
                 <h3 className="text-lg font-semibold mb-2 text-gray-700">
                   Additional Info
@@ -100,11 +137,13 @@ const RequestDetailModal: React.FC<RequestDetailModalProps> = ({
                   )}
                 </div>
               </section>
+
+              {/* Comments */}
               <section className="mb-6">
                 <h3 className="text-lg font-semibold mb-2 text-gray-700">
                   Comments
                 </h3>
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-100 mb-2 text-gray-900 min-h-[60px]">
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-100 mb-4 text-gray-900 min-h-[60px] max-h-[200px] overflow-y-auto">
                   {comments && comments.length > 0 ? (
                     <ul className="space-y-4">
                       {comments.map((line, index) => (
@@ -112,15 +151,13 @@ const RequestDetailModal: React.FC<RequestDetailModalProps> = ({
                           key={index}
                           className="flex items-start gap-3 border-b border-gray-100 pb-3 last:border-b-0"
                         >
-                          {/* Avatar (optional, show placeholder if not available) */}
                           <div className="flex-shrink-0">
-                            <Avatar src={line.user.avatarUrls["48x48"]} />
+                            <Avatar src={line.user?.avatarUrls?.["48x48"]} />
                           </div>
-                          {/* Comment content */}
                           <div>
                             <div className="flex items-center gap-2">
                               <span className="font-medium text-gray-800">
-                                {line.user.displayName}
+                                {line.user?.displayName || "Unknown User"}
                               </span>
                               <span className="text-xs text-gray-400">
                                 {line.createdAt &&
@@ -140,21 +177,29 @@ const RequestDetailModal: React.FC<RequestDetailModalProps> = ({
                     </span>
                   )}
                 </div>
-              </section>
-            </div>
 
-            {/* Sticky comment box */}
-            <div className="border-t border-gray-200 bg-white px-2">
-              <input
-                type="text"
-                placeholder="Add a comment…"
-                className="w-full p-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                aria-label="Add a comment"
-              />
+                <div className="mt-3 flex gap-2 items-start">
+                  <Textfield
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Add a comment…"
+                    isDisabled={isSubmitting}
+                    elemBeforeInput={<Avatar size="small" />}
+                    width="100%"
+                  />
+                  <Button
+                    appearance="primary"
+                    onClick={handleCommentSubmit}
+                    isDisabled={!newComment.trim() || isSubmitting}
+                  >
+                    {isSubmitting ? "Posting..." : "Post"}
+                  </Button>
+                </div>
+              </section>
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Details Panel */}
+          {/* RIGHT COLUMN */}
           <aside className="w-72 border-l border-gray-100 bg-gray-50 px-6 py-6 flex-shrink-0">
             <h3 className="font-semibold text-lg mb-3 text-gray-800">
               Details
@@ -176,9 +221,9 @@ const RequestDetailModal: React.FC<RequestDetailModalProps> = ({
                 {requiredApprovals.length > 0 ? (
                   requiredApprovals.map((item, idx) => (
                     <AvatarLabel
-                      key={item.displayName + idx}
-                      name={item.displayName}
-                      avatar={item.avatarUrls?.["48x48"]}
+                      key={item?.displayName + idx}
+                      name={item?.displayName || "Unknown"}
+                      avatar={item?.avatarUrls?.["48x48"]}
                       size="small"
                       appearance="circle"
                     />

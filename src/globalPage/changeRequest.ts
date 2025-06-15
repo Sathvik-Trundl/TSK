@@ -21,7 +21,6 @@ export const changeRequest = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-
       try {
         const userId = ctx.accountId!;
         const id = crypto.randomUUID();
@@ -70,24 +69,32 @@ export const changeRequest = router({
         "SELECT * FROM ChangeRequests WHERE id = ?"
       );
       const result = await statement.bindParams(input.id).execute();
-      const request = result.rows[0] as ChangeRequestStorage | undefined;
+      const request: any = result.rows[0] as ChangeRequestStorage | undefined;
       if (!request) return null;
+
+      const parsedComments: any = JSON.parse(request?.comments || "[]");
+      const commentUserIds = parsedComments.map((c: any) => c.user);
 
       const users = await getUsersByIds([
         request.requestedBy,
         ...request.requiredApprovals,
+        ...commentUserIds,
       ]);
       const projects = await getProjectsByIds([request.projectId]);
 
-      // need to add comments here
+      const userMap = new Map(users.map((u) => [u.accountId, u]));
+
       return {
         ...request,
-        requestedBy: users.find((u) => u.accountId === request.requestedBy),
-        requiredApprovals: request.requiredApprovals.map((id) =>
-          users.find((u) => u.accountId === id)
+        requestedBy: userMap.get(request.requestedBy),
+        requiredApprovals: request.requiredApprovals.map((id: any) =>
+          userMap.get(id)
         ),
         project: projects.find((p) => p.id === request.projectId),
-        comments: [],
+        comments: parsedComments.map((c: any) => ({
+          ...c,
+          user: userMap.get(c.user),
+        })),
       } as ChangeRequest;
     }),
 
@@ -100,10 +107,16 @@ export const changeRequest = router({
     const userIds = new Set<string>();
     const projectIds = new Set<string>();
 
-    requests.forEach((req) => {
+    requests.forEach((req: any) => {
       userIds.add(req.requestedBy);
       req.requiredApprovals.forEach((id: string) => userIds.add(id));
       projectIds.add(req.projectId);
+
+      const commentUsers =
+        req.comments && Array.isArray(JSON.parse(req.comments))
+          ? JSON.parse(req.comments).map((c: any) => c.user)
+          : [];
+      commentUsers.forEach((id: string) => userIds.add(id));
     });
 
     const users = await getUsersByIds(Array.from(userIds));
@@ -112,14 +125,19 @@ export const changeRequest = router({
     const userMap = new Map(users.map((u) => [u.accountId, u]));
     const projectMap = new Map(projects.map((p) => [p.id, p]));
 
-    return requests.map((req) => ({
+    return requests.map((req: any) => ({
       ...req,
       requestedBy: userMap.get(req.requestedBy),
       requiredApprovals: req.requiredApprovals.map((id: string) =>
         userMap.get(id)
       ),
       project: projectMap.get(req.projectId),
-      comments: [],
+      comments: (req.comments ? JSON.parse(req.comments) : []).map(
+        (c: any) => ({
+          ...c,
+          user: userMap.get(c.user),
+        })
+      ),
     })) as ChangeRequest[];
   }),
 
@@ -214,5 +232,76 @@ export const changeRequest = router({
         .execute();
 
       return { success: true };
+    }),
+
+  addCommentToRequest: procedure
+    .input(
+      z.object({
+        requestId: z.string(),
+        comment: z.string(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const userId = ctx.accountId!;
+        const now = DateTime.now().toISO();
+
+        // Fetch current comments
+        const fetchStmt = sql.prepare(
+          `SELECT comments FROM ChangeRequests WHERE id = ?`
+        );
+        const result: any = await fetchStmt
+          .bindParams(input.requestId)
+          .execute();
+        const currentComments = result.rows[0]?.comments || "[]";
+
+        const updatedComments = JSON.stringify([
+          ...JSON.parse(currentComments),
+          {
+            user: userId,
+            comment: input.comment,
+            createdAt: now,
+          },
+        ]);
+
+        const updateStmt = sql.prepare(
+          `UPDATE ChangeRequests SET comments = ?, updatedAt = ? WHERE id = ?`
+        );
+        await updateStmt
+          .bindParams(updatedComments, now, input.requestId)
+          .execute();
+
+        return { success: true };
+      } catch (error) {
+        console.error("Failed to add comment", error);
+        return { success: false, error: "Failed to add comment" };
+      }
+    }),
+
+  changePhase: procedure
+    .input(
+      z.object({
+        id: z.string(),
+        phase: z.string(), // Accepts any string for flexibility
+      })
+    )
+    .mutation(async ({ input }) => {
+      try {
+        const now = DateTime.now().toISO();
+
+        console.log({ now, input });
+        const statement = sql.prepare(`
+        UPDATE ChangeRequests
+        SET phase = ?, updatedAt = ?
+        WHERE id = ?
+      `);
+
+        await statement.bindParams(input.phase, now, input.id).execute();
+
+        return { success: true };
+      } catch (error) {
+        console.error("Failed to change phase:", error);
+        return { success: false, error: "Failed to change phase" };
+      }
     }),
 });
