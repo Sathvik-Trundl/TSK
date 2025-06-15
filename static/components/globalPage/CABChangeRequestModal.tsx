@@ -1,10 +1,4 @@
-import Modal, {
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-  ModalTitle,
-  ModalTransition,
-} from "@atlaskit/modal-dialog";
+import Modal, { ModalBody } from "@atlaskit/modal-dialog";
 import TextField from "@atlaskit/textfield";
 import TextArea from "@atlaskit/textarea";
 import UserPicker from "@components/appEssentials/UserPicker";
@@ -12,7 +6,6 @@ import Button from "@atlaskit/button/new";
 import ProjectPicker from "@components/appEssentials/ProjectPicker";
 import IssuePicker from "@components/appEssentials/IssuePicker";
 import Field from "@components/appEssentials/Field";
-
 import { useSnapshot } from "valtio";
 import {
   setFormField,
@@ -21,25 +14,17 @@ import {
 } from "@libs/store";
 import { trpcReact } from "@trpcClient/index";
 
-type SectionProps = {
+// Replace with your actual ChangeRequestForm type!
+type ChangeRequestForm = {
   title: string;
-  children: React.ReactNode;
-  className?: string;
+  description: string;
+  reason: string;
+  impact: string;
+  additionalInfo: string;
+  projectId: string | null;
+  issueIds: string[];
+  requiredApprovals: any[];
 };
-const Section = ({ title, children, className }: SectionProps) => (
-  <div
-    className={`${
-      className ?? ""
-    } rounded-lg p-6 mb-6 shadow-sm border border-gray-200 gap-2 flex flex-col`}
-  >
-    {title && (
-      <div className="text-lg mb-2 tracking-wide text-color.text.accent.gray font-bold">
-        {title}
-      </div>
-    )}
-    {children}
-  </div>
-);
 
 interface CABChangeRequestModalProps {
   isOpen: boolean;
@@ -49,7 +34,7 @@ interface CABChangeRequestModalProps {
 const CABChangeRequestModal = ({
   isOpen,
   onClose,
-}: CABChangeRequestModalProps): JSX.Element => {
+}: CABChangeRequestModalProps): JSX.Element | null => {
   const formData = useSnapshot(ChangeRequestFormDataState);
   const sqlMutation = trpcReact.globalPage.createChangeRequest.useMutation();
 
@@ -61,14 +46,12 @@ const CABChangeRequestModal = ({
     let changeForm = JSON.parse(JSON.stringify(formData)) as ChangeRequestForm;
     changeForm = {
       ...changeForm,
-      issueIds: changeForm.issueIds.map((item) => item.toString()),
+      projectId: changeForm.projectId,
+      issueIds: changeForm.issueIds?.map((item) => item.toString()) ?? [],
     };
     sqlMutation.mutate(changeForm, {
       onSuccess: () => {
-        console.log("Success");
-      },
-      onError(error, variables, context) {
-        console.log({ error, variables, context });
+        // Optionally: show toast or notification
       },
     });
     // resetChangeRequestFormData();
@@ -80,18 +63,32 @@ const CABChangeRequestModal = ({
     onClose();
   };
 
+  if (!isOpen) return null;
+
   return (
-    <ModalTransition>
-      {isOpen && (
-        <Modal onClose={onClose} width="large">
-          <ModalHeader>
-            <ModalTitle>
-              {!formData.title ? "CAB Change Request Form" : formData.title}
-            </ModalTitle>
-          </ModalHeader>
-          <ModalBody>
-            <Section title={""} className="my-0 mb-2 pt-3">
-              <div className="field-wrapper">
+    <Modal
+      onClose={onClose}
+      width="80%"
+      shouldScrollInViewport
+      aria-label="CAB Change Request Modal"
+      autoFocus
+    >
+      <ModalBody>
+        <div className="flex flex-row w-full bg-white max-h-[80vh] rounded-lg shadow border border-gray-100">
+          {/* LEFT COLUMN: FORM */}
+          <div className="flex-1 px-8 py-6 flex flex-col min-h-0">
+            <h2 className="text-2xl font-bold mb-6 text-blue-800">
+              {formData.title || "CAB Change Request Form"}
+            </h2>
+            <div
+              className="flex-grow overflow-y-auto pr-1"
+              style={{
+                maxHeight: "calc(76vh - 64px)",
+                paddingBottom: 0,
+              }}
+            >
+              {/* Title */}
+              <section className="mb-6">
                 <Field title="Request Title" htmlFor="title" />
                 <TextField
                   id="title"
@@ -101,11 +98,9 @@ const CABChangeRequestModal = ({
                   onChange={(e) => handleChange("title", e.currentTarget.value)}
                   width="100%"
                 />
-              </div>
-            </Section>
-
-            <Section title="Business Case" className="mb-6">
-              <div className="field-wrapper">
+              </section>
+              {/* Description */}
+              <section className="mb-6">
                 <Field title="Description" htmlFor="description" />
                 <TextArea
                   id="description"
@@ -115,8 +110,9 @@ const CABChangeRequestModal = ({
                   onChange={(e) => handleChange("description", e.target.value)}
                   style={{ width: "100%" }}
                 />
-              </div>
-              <div className="field-wrapper">
+              </section>
+              {/* Reason */}
+              <section className="mb-6">
                 <Field title="Business Justification" htmlFor="reason" />
                 <TextArea
                   id="reason"
@@ -126,19 +122,18 @@ const CABChangeRequestModal = ({
                   onChange={(e) => handleChange("reason", e.target.value)}
                   style={{ width: "100%" }}
                 />
-              </div>
-            </Section>
-
-            <Section title="Project & Issues">
-              <div className="field-wrapper">
+              </section>
+              {/* Project */}
+              <section className="mb-6">
                 <Field title="Project" />
                 <ProjectPicker
                   placeholder="Select Project"
                   value={formData.projectId ? [formData.projectId] : null}
                   onChange={(e) => handleChange("projectId", e ? e[0] : null)}
                 />
-              </div>
-              <div className="field-wrapper">
+              </section>
+              {/* Related Issues */}
+              <section className="mb-6">
                 <Field title="Related Issues" />
                 <IssuePicker
                   projectId={formData.projectId}
@@ -146,11 +141,9 @@ const CABChangeRequestModal = ({
                   onChange={(e) => handleChange("issueIds", e ? e : null)}
                   isMulti
                 />
-              </div>
-            </Section>
-
-            <Section title="Impact & Approvals" className="mb-6">
-              <div className="field-wrapper">
+              </section>
+              {/* Impact */}
+              <section className="mb-6">
                 <Field title="Impact Assessment" htmlFor="impact" />
                 <TextArea
                   id="impact"
@@ -160,8 +153,9 @@ const CABChangeRequestModal = ({
                   onChange={(e) => handleChange("impact", e.target.value)}
                   style={{ width: "100%" }}
                 />
-              </div>
-              <div className="field-wrapper">
+              </section>
+              {/* Approvals Required */}
+              <section className="mb-6">
                 <Field title="Approvals Required" />
                 <UserPicker
                   value={
@@ -173,8 +167,9 @@ const CABChangeRequestModal = ({
                   placeholder="Select users"
                   isMulti
                 />
-              </div>
-              <div className="field-wrapper">
+              </section>
+              {/* Additional Notes */}
+              <section className="mb-6">
                 <Field title="Additional Notes" htmlFor="additionalInfo" />
                 <TextArea
                   id="additionalInfo"
@@ -186,20 +181,91 @@ const CABChangeRequestModal = ({
                   }
                   style={{ width: "100%" }}
                 />
+              </section>
+            </div>
+            {/* Sticky Actions */}
+            <div className="flex justify-end gap-2 border-t border-gray-100 bg-white pt-4 pb-1 mt-3 sticky bottom-0">
+              <Button appearance="subtle" onClick={handleCancel}>
+                Cancel
+              </Button>
+              <Button appearance="primary" onClick={handleSubmit}>
+                Submit
+              </Button>
+            </div>
+          </div>
+          {/* RIGHT COLUMN: PREVIEW PANEL */}
+          <aside className="w-72 border-l border-gray-100 bg-gray-50 px-6 py-6 flex-shrink-0 hidden md:block">
+            <h3 className="font-semibold text-lg mb-3 text-gray-800">
+              Preview
+            </h3>
+            <div className="mb-4">
+              <div className="text-sm text-gray-500">Title</div>
+              <div className="font-medium text-gray-900">
+                {formData.title || (
+                  <span className="italic text-gray-400">N/A</span>
+                )}
               </div>
-            </Section>
-          </ModalBody>
-          <ModalFooter>
-            <Button appearance="subtle" onClick={handleCancel}>
-              Cancel
-            </Button>
-            <Button appearance="primary" onClick={handleSubmit}>
-              Submit
-            </Button>
-          </ModalFooter>
-        </Modal>
-      )}
-    </ModalTransition>
+            </div>
+            <div className="mb-4">
+              <div className="text-sm text-gray-500">Project</div>
+              <div className="font-medium text-gray-900">
+                {formData.projectId || (
+                  <span className="italic text-gray-400">N/A</span>
+                )}
+              </div>
+            </div>
+            <div className="mb-4">
+              <div className="text-sm text-gray-500">Issues</div>
+              <div className="font-medium text-gray-900">
+                {formData.issueIds && formData.issueIds.length > 0 ? (
+                  formData.issueIds.join(", ")
+                ) : (
+                  <span className="italic text-gray-400">N/A</span>
+                )}
+              </div>
+            </div>
+            <div className="mb-4">
+              <div className="text-sm text-gray-500">Approvals</div>
+              <div className="font-medium text-gray-900">
+                {formData.requiredApprovals &&
+                formData.requiredApprovals.length > 0 ? (
+                  formData.requiredApprovals
+                    .map((u: any) => u.displayName || u)
+                    .join(", ")
+                ) : (
+                  <span className="italic text-gray-400">N/A</span>
+                )}
+              </div>
+            </div>
+            <div className="mb-4">
+              <div className="text-sm text-gray-500">Impact</div>
+              <div className="font-medium text-gray-900">
+                {formData.impact || (
+                  <span className="italic text-gray-400">N/A</span>
+                )}
+              </div>
+            </div>
+            <div className="mb-4">
+              <div className="text-sm text-gray-500">Reason</div>
+              <div className="font-medium text-gray-900">
+                {formData.reason || (
+                  <span className="italic text-gray-400">N/A</span>
+                )}
+              </div>
+            </div>
+            <div className="mb-4">
+              <div className="text-sm text-gray-500">Additional Info</div>
+              <div className="font-medium text-gray-900">
+                {formData.additionalInfo || (
+                  <span className="italic text-gray-400">N/A</span>
+                )}
+              </div>
+            </div>
+          </aside>
+        </div>
+      </ModalBody>
+    </Modal>
   );
 };
+
 export default CABChangeRequestModal;

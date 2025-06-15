@@ -27,10 +27,12 @@ export const projectPageRoutes = {
 
 export const StorageKVConstants = {
   USER_MANAGEMENT_STORAGE: "userManagement",
+  MEETING_STORAGE: "meetings",
 };
 
 export const storageKeys = {
   USER_MANAGEMENT: (userId: string) => `UMG_${userId}`,
+  MEETING: (meetingId: string) => `MEETING_${meetingId}`,
 };
 
 export const globalPageRoutes = {
