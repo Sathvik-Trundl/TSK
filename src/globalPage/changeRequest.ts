@@ -4,6 +4,8 @@ import crypto from "crypto";
 import { procedure, router } from "../trpcServer";
 import { DateTime } from "luxon";
 import { getProjectsByIds, getUsersByIds } from "../rest/functions";
+import { storageKeys } from "../../common/constants";
+import { storage } from "@forge/api";
 
 export const changeRequest = router({
   // Create a new change request
@@ -99,13 +101,17 @@ export const changeRequest = router({
     }),
 
   // Read all change requests
-  getAllChangeRequests: procedure.query(async () => {
+  getAllChangeRequests: procedure.query(async ({ ctx }) => {
     const statement = sql.prepare("SELECT * FROM ChangeRequests");
     const result = await statement.execute();
     const requests = (result.rows as ChangeRequestStorage[]) || [];
 
     const userIds = new Set<string>();
     const projectIds = new Set<string>();
+
+    const user = ctx.accountId!;
+    const UMGKey = storageKeys.USER_MANAGEMENT(user);
+    const check = await storage.get(UMGKey);
 
     requests.forEach((req: any) => {
       userIds.add(req.requestedBy);
@@ -119,28 +125,33 @@ export const changeRequest = router({
       commentUsers.forEach((id: string) => userIds.add(id));
     });
 
-    console.log({ userIds, projectIds });
-
     const users = await getUsersByIds(Array.from(userIds));
     const projects = await getProjectsByIds(Array.from(projectIds));
 
     const userMap = new Map(users.map((u) => [u.accountId, u]));
     const projectMap = new Map(projects.map((p) => [p.id, p]));
 
-    return requests.map((req: any) => ({
-      ...req,
-      requestedBy: userMap.get(req.requestedBy),
-      requiredApprovals: req.requiredApprovals.map((id: string) =>
-        userMap.get(id)
-      ),
-      project: projectMap.get(req.projectId),
-      comments: (req.comments ? JSON.parse(req.comments) : []).map(
-        (c: any) => ({
-          ...c,
-          user: userMap.get(c.user),
-        })
-      ),
-    })) as ChangeRequest[];
+    return requests.map((req: any) => {
+      const isApprover =
+        check?.projectRoles?.[req.projectId] === "Approver" ||
+        check?.projectRoles?.[req.projectId] === "Admin";
+
+      return {
+        ...req,
+        requestedBy: userMap.get(req.requestedBy),
+        requiredApprovals: req.requiredApprovals.map((id: string) =>
+          userMap.get(id)
+        ),
+        isApprover,
+        project: projectMap.get(req.projectId),
+        comments: (req.comments ? JSON.parse(req.comments) : []).map(
+          (c: any) => ({
+            ...c,
+            user: userMap.get(c.user),
+          })
+        ),
+      };
+    }) as ChangeRequest[];
   }),
 
   // Update an existing change request

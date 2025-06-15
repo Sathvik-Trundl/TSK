@@ -4,6 +4,7 @@ import { kvs as storage, WhereConditions } from "@forge/kvs";
 import { procedure, router } from "../trpcServer";
 import { storageKeys } from "../../common/constants";
 import { ListResult } from "@forge/api";
+import api, { route } from "@forge/api";
 import { now } from "d3";
 
 export const userManagementRouter = router({
@@ -13,7 +14,6 @@ export const userManagementRouter = router({
       const user = input.id!;
       const { projectRoles } = input;
 
-      console.log({ user, projectRoles, input });
       const UMGKey = storageKeys.USER_MANAGEMENT(user);
       const result = await storage.set(UMGKey, {
         id: user,
@@ -109,7 +109,7 @@ export const userManagementRouter = router({
       Array.from(allProjectIds).map(async (pid) => {
         const project = await getProjectByID(pid);
         if (project) projectMap.set(pid, project.name);
-        else projectMap.set(pid, pid); // fallback
+        else projectMap.set(pid, pid); // fallback to ID if name not found
       })
     );
 
@@ -117,18 +117,19 @@ export const userManagementRouter = router({
       const typedValue = value as UserManagementPerUser;
 
       const user = userMap.get(typedValue.id);
-      const projectRolesResolved: any = {};
 
+      const projectRolesByName: any = {};
       Object.entries(typedValue.projectRoles).forEach(([pid, role]) => {
         const pname = projectMap.get(pid) || pid;
-        projectRolesResolved[pname] = role;
+        projectRolesByName[pname] = role;
       });
 
       return {
         id: typedValue.id,
         userLabel: user?.displayName || typedValue.id,
         avatarUrl: user?.avatarUrls?.["24x24"],
-        projectRoles: projectRolesResolved,
+        projectRoles: typedValue.projectRoles, // e.g. { '10013': 'Approver' }
+        projectRolesDisplay: projectRolesByName, // e.g. { 'Finance App': 'Approver' }
         createdAt: typedValue.createdAt,
         updatedAt: typedValue.updatedAt,
       };
@@ -136,4 +137,52 @@ export const userManagementRouter = router({
 
     return { results: final };
   }),
+
+  createConfluencePage: procedure
+    .input(
+      (value) => value as { spaceKey: string; title: string; content: string }
+    )
+    .mutation(async ({ input }) => {
+      try {
+        const { spaceKey, title, content } = input;
+        const res = await api
+          .asApp()
+          .requestConfluence(route`/wiki/api/v2/spaces`);
+        console.log(await res.json());
+
+        const response = await api
+          .asApp()
+          .requestConfluence(route`/wiki/api/v2/pages`, {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              type: "page",
+              title,
+              space: { key: spaceKey },
+              body: {
+                storage: {
+                  value: content,
+                  representation: "storage",
+                },
+              },
+            }),
+          });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          console.error("Confluence aaa page creation failed:", data);
+          throw new Error("Failed to create Confluence page.");
+        }
+
+        console.log("Confluence page created successfully:", data);
+        return data;
+      } catch (err) {
+        console.error("createConfluencePage error:", err);
+        throw new Error("Error creating Confluence page.");
+      }
+    }),
 });

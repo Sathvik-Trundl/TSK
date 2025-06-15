@@ -18,14 +18,16 @@ function getColumns(
     {
       accessorKey: "title",
       header: "Request Name",
-      cell: (info) => (
-        <button
-          onClick={() => onSelect(info.row.original)}
-          className="dark:text-blue-500  text-blue-600 font-semibold hover:underline transition"
-        >
-          {info.getValue() as string}
-        </button>
-      ),
+      cell: (info) => {
+        return (
+          <button
+            onClick={() => onSelect(info.row.original)}
+            className="dark:text-blue-500  text-blue-600 font-semibold hover:underline transition"
+          >
+            {info.getValue() as string}
+          </button>
+        );
+      },
     },
     {
       accessorKey: "phase",
@@ -36,7 +38,8 @@ function getColumns(
       id: "actions",
       header: "Actions",
       cell: (info) =>
-        info.row.original.phase.toLowerCase() === "validation pending" && (
+        info.row.original.phase.toLowerCase() === "validation pending" &&
+        info.row.original?.isApprover && (
           <div className="flex gap-2">
             <button
               onClick={() => onApprove(info.row.original.id)}

@@ -148,16 +148,20 @@ const UserModal = () => {
     if (!userEntry) return;
 
     const prefilled = Object.entries(userEntry.projectRoles).map(
-      ([projectId, role]) => ({
-        project: {
-          value: projectId,
-          label: projectId,
-        },
-        role: {
-          value: role,
-          label: role,
-        },
-      })
+      ([projectId, role]) => {
+        const projectName =
+          projects.find((p) => p.id === projectId)?.name || projectId;
+        return {
+          project: {
+            value: projectId,
+            label: projectName,
+          },
+          role: {
+            value: role,
+            label: role,
+          },
+        };
+      }
     );
 
     setSelectedUser([userEntry.id]);
@@ -270,9 +274,9 @@ const UserModal = () => {
                             value: p.id,
                           }))}
                         value={entry.project}
-                        onChange={(val: any) =>
-                          updateProjectRole(index, "project", val)
-                        }
+                        onChange={(val: any) => {
+                          updateProjectRole(index, "project", val);
+                        }}
                         placeholder="Select project"
                       />
                       <Select
