@@ -99,7 +99,7 @@ export const getProjectsByIds = async (projectIds: string[]) => {
   );
 
   const allProjects = await Promise.all(requests);
-  console.log("getProjectsByIds result:", allProjects);
+  console.log("getProjectsByIds Success");
 
   return allProjects;
 };

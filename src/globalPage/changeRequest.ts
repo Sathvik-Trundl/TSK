@@ -119,6 +119,8 @@ export const changeRequest = router({
       commentUsers.forEach((id: string) => userIds.add(id));
     });
 
+    console.log({ userIds, projectIds });
+
     const users = await getUsersByIds(Array.from(userIds));
     const projects = await getProjectsByIds(Array.from(projectIds));
 

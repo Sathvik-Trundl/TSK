@@ -47,7 +47,7 @@ const ProjectPicker = ({
   }, [value]);
 
   const { data: fetchProjects = [], isLoading: isResolving } =
-    trpcReact.rest.getProjectsById.useQuery(uncachedIds, {
+    trpcReact.rest.getProjectsByIds.useQuery(uncachedIds, {
       enabled: uncachedIds.length > 0,
     });
 

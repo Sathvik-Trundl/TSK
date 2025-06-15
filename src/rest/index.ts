@@ -46,7 +46,7 @@ export const restRouter = router({
       return projects;
     }),
 
-  getProjectsById: procedure
+  getProjectsByIds: procedure
     .input((value) => value as string[])
     .query(async ({ input }) => {
       const projects = await getProjectsByIds(input);

@@ -182,4 +182,50 @@ export const meetingsRouter = router({
     const meetings = await Promise.all(results.map((r) => toMeetings(r.value)));
     return { results: meetings };
   }),
+  getTopFiveUpcomingMeetings: procedure.query(async () => {
+    const prefix = storageKeys.MEETING("");
+    const data: ListResult<MeetingsStorage> = await storage
+      .query()
+      .where("key", WhereConditions.beginsWith(prefix))
+      .getMany();
+
+    const results = data.results ?? [];
+    // Map to Meetings (which resolves changeRequest and attendees)
+    const meetings = await Promise.all(results.map((r) => toMeetings(r.value)));
+
+    // Filter to future meetings
+    const now = DateTime.now();
+    const upcoming = meetings
+      .filter((m) => DateTime.fromISO(m.start.dateTime) > now)
+      .sort(
+        (a, b) =>
+          DateTime.fromISO(a.start.dateTime).toMillis() -
+          DateTime.fromISO(b.start.dateTime).toMillis()
+      )
+      .slice(0, 5);
+
+    return { results: upcoming };
+  }),
+  getMyMeetings: procedure.query(async ({ ctx }) => {
+    if (!ctx.accountId) throw new Error("User not authenticated");
+
+    const prefix = storageKeys.MEETING("");
+    const data: ListResult<MeetingsStorage> = await storage
+      .query()
+      .where("key", WhereConditions.beginsWith(prefix))
+      .getMany();
+
+    const results = data.results ?? [];
+    const meetings = await Promise.all(results.map((r) => toMeetings(r.value)));
+
+    // Find meetings where user is creator or attendee
+    const myMeetings = meetings.filter(
+      (m) =>
+        m.changeRequest?.requestedBy?.accountId === ctx.accountId ||
+        (Array.isArray(m.attendees) &&
+          m.attendees.some((u) => u.accountId === ctx.accountId))
+    );
+
+    return { results: myMeetings };
+  }),
 });
