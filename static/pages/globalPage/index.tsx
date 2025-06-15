@@ -4,15 +4,12 @@ import Navigation from "../../components/globalPage/Navigation";
 import Card from "@components/globalPage/Card";
 import { useSnapshot } from "valtio";
 import { globalPageStore } from "@libs/store";
-// import { trpcReact } from "@trpcClient/index";
-// import Loader from "@components/Loader";
+import Loader from "@components/Loader";
 import StatusTable from "@components/globalPage/StatusTable";
 import RequestDetailModal from "@components/globalPage/RequestDetailModal";
 import CABChangeRequestModal from "@components/globalPage/CABChangeRequestModal";
 import MeetingModal from "@components/globalPage/MeetingModal";
-// import { dummyChangeRequests } from "./changeRequestsData";
 import { trpcReact } from "@trpcClient/index";
-import { Loader } from "lucide-react";
 import MeetingsTable from "@components/globalPage/MeetingsTable";
 
 const HomePage: React.FC = () => {
@@ -37,17 +34,19 @@ const HomePage: React.FC = () => {
   const rejectChangeRequest =
     trpcReact.globalPage.rejectChangeRequest.useMutation();
 
-  console.log({ isFetching });
-  const handleApprove = (id: string) => {
-    approveChangeRequest.mutate(id, {
-      onSuccess: () => {
-        refetchRequests();
-        globalPageStore.openMeetModal = true;
-      },
-      onError: (err) => {
-        console.error("Approval failed:", err);
-      },
-    });
+  const handleApprove = (id: string, currentPhase: Phase) => {
+    approveChangeRequest.mutate(
+      { id, currentPhase },
+      {
+        onSuccess: () => {
+          refetchRequests();
+          globalPageStore.openMeetModal = true;
+        },
+        onError: (err) => {
+          console.error("Approval failed:", err);
+        },
+      }
+    );
   };
 
   const handleReject = (id: string) => {
@@ -64,7 +63,7 @@ const HomePage: React.FC = () => {
   if (isLoading) return <Loader type="full" />;
 
   return (
-    <div className="min-h-screen px-2 py-2">
+    <div className="min-h-screen">
       <div className="pb-2">
         <Navigation />
       </div>

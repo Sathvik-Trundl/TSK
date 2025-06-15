@@ -51,7 +51,7 @@ const RequestDetailModal: React.FC<RequestDetailModalProps> = ({
       request.comments.push({
         user: requestedBy,
         comment: newComment.trim(),
-        createdAt: new Date().toISOString(),
+        createdAt: new Date().toISOString()
       });
 
       setNewComment("");
@@ -177,25 +177,24 @@ const RequestDetailModal: React.FC<RequestDetailModalProps> = ({
                     </span>
                   )}
                 </div>
-
-                <div className="mt-3 flex gap-2 items-start">
-                  <Textfield
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Add a comment…"
-                    isDisabled={isSubmitting}
-                    elemBeforeInput={<Avatar size="small" />}
-                    width="100%"
-                  />
-                  <Button
-                    appearance="primary"
-                    onClick={handleCommentSubmit}
-                    isDisabled={!newComment.trim() || isSubmitting}
-                  >
-                    {isSubmitting ? "Posting..." : "Post"}
-                  </Button>
-                </div>
               </section>
+            </div>
+            <div className="mt-3 flex gap-2 items-start">
+              <Textfield
+                value={newComment}
+                onChange={(e) => setNewComment(e.currentTarget.value)}
+                placeholder="Add a comment…"
+                isDisabled={isSubmitting}
+                elemBeforeInput={<Avatar size="small" />}
+                width="100%"
+              />
+              <Button
+                appearance="primary"
+                onClick={handleCommentSubmit}
+                isDisabled={!newComment.trim() || isSubmitting}
+              >
+                {isSubmitting ? "Posting..." : "Post"}
+              </Button>
             </div>
           </div>
 

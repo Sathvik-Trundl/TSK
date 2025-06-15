@@ -9,6 +9,8 @@ import PhaseLozenge from "@components/appEssentials/Lozenge";
 import { Check, X } from "lucide-react";
 import { trpcReact } from "@trpcClient/index";
 import RequestDetailModal from "@components/globalPage/RequestDetailModal";
+import Navigation from "@components/globalPage/Navigation";
+import Loader from "@components/Loader";
 
 interface ChangeRequest {
   id: string;
@@ -35,8 +37,30 @@ const KanbanBoard = () => {
     trpcReact.globalPage.approveChangeRequest.useMutation();
   const rejectChangeRequest =
     trpcReact.globalPage.rejectChangeRequest.useMutation();
-  const { data: requests, refetch } =
+  const { data: requests, isLoading } =
     trpcReact.globalPage.getAllChangeRequests.useQuery();
+
+  const handleApprove = (id: string, currentPhase: Phase) => {
+    approveChangeRequest.mutate(
+      { id, currentPhase },
+      {
+        onSuccess: () => {
+          // refetchRequests();
+        },
+        onError: (err) => {
+          console.error("Approval failed:", err);
+        },
+      }
+    );
+  };
+
+  const handleReject = (id: string) => {
+    rejectChangeRequest.mutate(id, {
+      onError: (err) => {
+        console.error("Rejection failed:", err);
+      },
+    });
+  };
 
   // Sync local requests with fetched ones
   useEffect(() => {
@@ -101,79 +125,80 @@ const KanbanBoard = () => {
     );
   };
 
-  if (!requests) return <div>Loading...</div>;
+  if (isLoading) return <Loader type="full" />;
 
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex gap-6 overflow-x-auto p-4 h-[calc(100vh-120px)]">
-        {PHASES.map((phase) => (
-          <Droppable droppableId={phase} key={phase}>
-            {(provided, snapshot) => (
-              <div
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-                className={`flex flex-col min-w-[280px] w-[300px] bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm transition ${
-                  snapshot.isDraggingOver ? "bg-blue-100" : ""
-                }`}
-              >
-                <h3 className="text-md font-bold text-gray-700 mb-4">
-                  {phase}
-                </h3>
+    <div className="flex flex-col">
+      <Navigation />
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="flex gap-6 overflow-x-auto p-4 justify-center h-[calc(100vh-120px)]">
+          {PHASES.map((phase) => (
+            <Droppable droppableId={phase} key={phase}>
+              {(provided, snapshot) => (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  className={`flex flex-col min-w-[280px] w-[300px] bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm transition ${
+                    snapshot.isDraggingOver ? "bg-blue-100" : ""
+                  }`}
+                >
+                  <h3 className="text-md font-bold text-gray-700 mb-4">
+                    {phase}
+                  </h3>
 
-                {grouped[phase].map((req, idx) => (
-                  <Draggable draggableId={req.id} index={idx} key={req.id}>
-                    {(dragProvided) => (
-                      <div
-                        ref={dragProvided.innerRef}
-                        {...dragProvided.draggableProps}
-                        {...dragProvided.dragHandleProps}
-                        className="bg-white border border-gray-300 p-3 mb-3 rounded-md shadow hover:shadow-md transition"
-                      >
-                        <button
-                          onClick={() => setSelectedRequest(req)}
-                          className="text-blue-600 font-medium hover:underline"
+                  {grouped[phase].map((req, idx) => (
+                    <Draggable draggableId={req.id} index={idx} key={req.id}>
+                      {(dragProvided) => (
+                        <div
+                          ref={dragProvided.innerRef}
+                          {...dragProvided.draggableProps}
+                          {...dragProvided.dragHandleProps}
+                          className="bg-white border border-gray-300 p-3 mb-3 rounded-md shadow hover:shadow-md transition"
                         >
-                          {req.title}
-                        </button>
-                        <div className="text-sm text-gray-600 my-1">
-                          <PhaseLozenge phase={req.phase} />
-                        </div>
-                        {/* {req.phase === "Validation Pending" && (
-                          <div className="flex gap-2 mt-2">
-                            <button
-                              onClick={() =>
-                                approveChangeRequest.mutate(req.id)
-                              }
-                              className="text-xs bg-green-500 text-white px-2 py-1 rounded flex items-center gap-1"
-                            >
-                              <Check size={14} /> Approve
-                            </button>
-                            <button
-                              onClick={() => rejectChangeRequest.mutate(req.id)}
-                              className="text-xs bg-red-500 text-white px-2 py-1 rounded flex items-center gap-1"
-                            >
-                            <X size={14} /> Reject
-                            </button>
+                          <button
+                            onClick={() => setSelectedRequest(req)}
+                            className="text-blue-600 font-medium hover:underline"
+                          >
+                            {req.title}
+                          </button>
+                          <div className="text-sm text-gray-600 my-1">
+                            <PhaseLozenge phase={req.phase} />
                           </div>
-                        )} */}
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
+                          {req.phase === "Validation Pending" && (
+                            <div className="flex gap-2 mt-2">
+                              <button
+                                onClick={() => handleApprove(req.id, req.phase)}
+                                className="text-xs bg-green-500 text-white px-2 py-1 rounded flex items-center gap-1"
+                              >
+                                <Check size={14} /> Approve
+                              </button>
+                              <button
+                                onClick={() => handleReject(req.id)}
+                                className="text-xs bg-red-500 text-white px-2 py-1 rounded flex items-center gap-1"
+                              >
+                                <X size={14} /> Reject
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
 
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        ))}
-      </div>
-      {selectedRequest && (
-        <RequestDetailModal
-          request={selectedRequest as any}
-          onClose={() => setSelectedRequest(null)}
-        />
-      )}
-    </DragDropContext>
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          ))}
+        </div>
+        {selectedRequest && (
+          <RequestDetailModal
+            request={selectedRequest as any}
+            onClose={() => setSelectedRequest(null)}
+          />
+        )}
+      </DragDropContext>
+    </div>
   );
 };
 

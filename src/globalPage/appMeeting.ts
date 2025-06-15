@@ -15,7 +15,6 @@ async function toMeetings(meetingStorage: MeetingsStorage): Promise<Meetings> {
   );
   if (!changeRequest) throw new Error("Change request not found");
   const attendees = await getUsersByIds(meetingStorage.attendees);
-
   return {
     ...meetingStorage,
     changeRequest,
@@ -29,6 +28,7 @@ function toMeetingsStorage(meeting: Meetings): MeetingsStorage {
       "Invalid input: changeRequest or changeRequest.id is missing"
     );
   }
+  console.log({ meeting });
 
   return {
     id: meeting.id,
@@ -47,7 +47,7 @@ function toMeetingsStorage(meeting: Meetings): MeetingsStorage {
     endDate: meeting.endDate,
     startTime: meeting.startTime,
     endTime: meeting.endTime,
-    attendees: meeting.attendees.map((u) => u.accountId),
+    attendees: meeting.attendees as unknown as string[],
     notes: meeting.notes,
     createdAt: meeting.createdAt,
     updatedAt: meeting.updatedAt,
@@ -179,9 +179,6 @@ export const meetingsRouter = router({
       .getMany();
 
     const results = data.results ?? [];
-    await Promise.all([
-      ...results.map((r) => storage.delete(r.key)),
-    ]);
     const meetings = await Promise.all(results.map((r) => toMeetings(r.value)));
     return { results: meetings };
   }),
@@ -193,7 +190,7 @@ export const meetingsRouter = router({
       .getMany();
 
     const results = data.results ?? [];
-    // Map to Meetings (which resolves changeRequest and attendees)
+
     const meetings = await Promise.all(results.map((r) => toMeetings(r.value)));
 
     // Filter to future meetings

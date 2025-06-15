@@ -11,7 +11,7 @@ import { Check, X } from "lucide-react";
 // Define your columns
 function getColumns(
   onSelect: (request: ChangeRequest) => void,
-  onApprove: (id: string) => void,
+  onApprove: (id: string, phase: Phase) => void,
   onReject: (id: string) => void
 ): ColumnDef<ChangeRequest>[] {
   return [
@@ -42,7 +42,9 @@ function getColumns(
         info.row.original?.isApprover && (
           <div className="flex gap-2">
             <button
-              onClick={() => onApprove(info.row.original.id)}
+              onClick={() =>
+                onApprove(info.row.original.id, info.row.original.phase)
+              }
               className="flex items-center gap-1 justify-center text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-xl shadow transition"
               title="Approve"
             >
@@ -64,7 +66,7 @@ function getColumns(
 interface Props {
   requests: ChangeRequest[];
   onSelect: (request: ChangeRequest) => void;
-  onApprove: (id: string) => void;
+  onApprove: (id: string, phase: Phase) => void;
   onReject: (id: string) => void;
   isLoading?: boolean;
 }

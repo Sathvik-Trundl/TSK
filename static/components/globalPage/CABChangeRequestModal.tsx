@@ -11,8 +11,11 @@ import {
   setFormField,
   ChangeRequestFormDataState,
   resetChangeRequestFormData,
+  validateChangeRequestForm,
 } from "@libs/store";
 import { trpcReact } from "@trpcClient/index";
+import { useProductContext } from "@libs/util";
+import { useEffect } from "react";
 
 // Replace with your actual ChangeRequestForm type!
 // type ChangeRequestForm = {
@@ -32,31 +35,75 @@ interface CABChangeRequestModalProps {
   refetchRequests: () => void;
 }
 
+const getChangeRequestError = (field: string, snap: any): string => {
+  if (!snap.touched?.[field]) return "";
+  switch (field) {
+    case "title":
+      return !snap.title.trim() ? "Title is required." : "";
+    case "requestedBy":
+      return !snap.requestedBy || !snap.requestedBy.trim()
+        ? "Requester is required."
+        : "";
+    case "description":
+      return !snap.description.trim() ? "Description is required." : "";
+    case "reason":
+      return !snap.reason.trim() ? "Business justification is required." : "";
+    case "impact":
+      return !snap.impact.trim() ? "Impact assessment is required." : "";
+    case "projectId":
+      return !snap.projectId || !snap.projectId.trim()
+        ? "Project is required."
+        : "";
+    case "requiredApprovals":
+      return !Array.isArray(snap.requiredApprovals) ||
+        snap.requiredApprovals.length === 0
+        ? "At least one approver is required."
+        : "";
+    default:
+      return "";
+  }
+};
+
 const CABChangeRequestModal = ({
   isOpen,
   onClose,
   refetchRequests,
 }: CABChangeRequestModalProps): JSX.Element | null => {
+  const viewContext = useProductContext();
   const formData = useSnapshot(ChangeRequestFormDataState);
   const sqlMutation = trpcReact.globalPage.createChangeRequest.useMutation();
 
   const handleChange = (field: keyof typeof formData, value: any) => {
     setFormField(field, value);
+    ChangeRequestFormDataState.error = validateChangeRequestForm();
   };
 
   const handleSubmit = () => {
-    let changeForm = JSON.parse(
-      JSON.stringify(formData)
-    ) as ChangeRequestStorage;
-    changeForm = {
-      ...changeForm,
-      projectId: changeForm.projectId,
-      issueIds: changeForm.issueIds?.map((item) => item.toString()) ?? [],
+    function omit<T extends object, K extends keyof T>(
+      obj: T,
+      keys: K[]
+    ): Omit<T, K> {
+      const clone = { ...obj };
+      for (const key of keys) {
+        delete clone[key];
+      }
+      return clone;
+    }
+
+    // In handleSubmit:
+    const formClean = omit(JSON.parse(JSON.stringify(formData)), [
+      "touched",
+      "error",
+    ]) as ChangeRequestStorage;
+
+    const changeForm = {
+      ...formClean,
+      projectId: formClean.projectId,
+      issueIds: formClean.issueIds?.map((item) => item.toString()) ?? [],
     };
 
     sqlMutation.mutate(changeForm, {
       onSuccess: () => {
-        // Optionally: show toast or notification
         refetchRequests();
       },
     });
@@ -68,6 +115,12 @@ const CABChangeRequestModal = ({
     resetChangeRequestFormData();
     onClose();
   };
+
+  useEffect(() => {
+    if (isOpen && viewContext.data?.accountId) {
+      setFormField("requestedBy", viewContext.data.accountId);
+    }
+  }, [isOpen, viewContext.data?.accountId]);
 
   if (!isOpen) return null;
 
@@ -94,7 +147,11 @@ const CABChangeRequestModal = ({
               }}
             >
               <section className="mb-6">
-                <Field title="Request Title" htmlFor="title">
+                <Field
+                  title="Request Title"
+                  htmlFor="title"
+                  error={getChangeRequestError("title", formData)}
+                >
                   <TextField
                     id="title"
                     name="title"
@@ -109,7 +166,11 @@ const CABChangeRequestModal = ({
               </section>
 
               <section className="mb-6">
-                <Field title="Description" htmlFor="description">
+                <Field
+                  title="Description"
+                  htmlFor="description"
+                  error={getChangeRequestError("description", formData)}
+                >
                   <TextArea
                     id="description"
                     name="description"
@@ -124,7 +185,27 @@ const CABChangeRequestModal = ({
               </section>
 
               <section className="mb-6">
-                <Field title="Business Justification" htmlFor="reason">
+                <Field
+                  title="Request by"
+                  htmlFor="requestedBy"
+                  error={getChangeRequestError("requestedBy", formData)}
+                >
+                  <UserPicker
+                    placeholder="Describe the change"
+                    value={[formData.requestedBy]}
+                    onChange={(e) =>
+                      handleChange("requestedBy", e ? e[0] : null)
+                    }
+                  />
+                </Field>
+              </section>
+
+              <section className="mb-6">
+                <Field
+                  title="Business Justification"
+                  htmlFor="reason"
+                  error={getChangeRequestError("reason", formData)}
+                >
                   <TextArea
                     id="reason"
                     name="reason"
@@ -137,7 +218,10 @@ const CABChangeRequestModal = ({
               </section>
 
               <section className="mb-6">
-                <Field title="Project">
+                <Field
+                  title="Project"
+                  error={getChangeRequestError("projectId", formData)}
+                >
                   <ProjectPicker
                     placeholder="Select Project"
                     value={formData.projectId ? [formData.projectId] : null}
@@ -147,7 +231,10 @@ const CABChangeRequestModal = ({
               </section>
 
               <section className="mb-6">
-                <Field title="Related Issues">
+                <Field
+                  title="Related Issues"
+                  error={getChangeRequestError("issueIds", formData)}
+                >
                   <IssuePicker
                     projectId={formData.projectId}
                     value={formData.issueIds ? [...formData.issueIds] : null}
@@ -158,7 +245,11 @@ const CABChangeRequestModal = ({
               </section>
 
               <section className="mb-6">
-                <Field title="Impact Assessment" htmlFor="impact">
+                <Field
+                  title="Impact Assessment"
+                  htmlFor="impact"
+                  error={getChangeRequestError("impact", formData)}
+                >
                   <TextArea
                     id="impact"
                     name="impact"
@@ -171,7 +262,10 @@ const CABChangeRequestModal = ({
               </section>
 
               <section className="mb-6">
-                <Field title="Approvals Required">
+                <Field
+                  title="Approvals Required"
+                  error={getChangeRequestError("requiredApprovals", formData)}
+                >
                   <UserPicker
                     value={
                       JSON.parse(
@@ -205,7 +299,11 @@ const CABChangeRequestModal = ({
               <Button appearance="subtle" onClick={handleCancel}>
                 Cancel
               </Button>
-              <Button appearance="primary" onClick={handleSubmit}>
+              <Button
+                appearance="primary"
+                onClick={handleSubmit}
+                isDisabled={!!formData.error}
+              >
                 Submit
               </Button>
             </div>

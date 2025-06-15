@@ -14,6 +14,7 @@ export const changeRequest = router({
       z.object({
         title: z.string(),
         description: z.string(),
+        requestedBy: z.string(),
         reason: z.string(),
         impact: z.string(),
         projectId: z.string(),
@@ -22,9 +23,8 @@ export const changeRequest = router({
         additionalInfo: z.string().optional(),
       })
     )
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       try {
-        const userId = ctx.accountId!;
         const id = crypto.randomUUID();
         const now = DateTime.now().toISO();
 
@@ -40,7 +40,7 @@ export const changeRequest = router({
           .bindParams(
             id,
             input.title,
-            userId,
+            input.requestedBy,
             input.description,
             input.reason,
             input.impact,
@@ -216,7 +216,12 @@ export const changeRequest = router({
     }),
 
   approveChangeRequest: procedure
-    .input(z.string())
+    .input(
+      z.object({
+        id: z.string(),
+        currentPhase: z.string(),
+      })
+    )
     .mutation(async ({ input }) => {
       const statement = sql.prepare(`
       UPDATE ChangeRequests
@@ -224,8 +229,10 @@ export const changeRequest = router({
       WHERE id = ?
     `);
 
+      const { id } = input;
+
       await statement
-        .bindParams("Approved", "Approved", DateTime.now().toISO(), input)
+        .bindParams("Approved", "Approved", DateTime.now().toISO(), id)
         .execute();
 
       return { success: true };

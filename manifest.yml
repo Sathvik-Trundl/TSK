@@ -73,7 +73,6 @@ permissions:
       client:
         - "*.microsoftonline.com"
         - "*.microsoft.com"
-        - "*.released.so"
       backend:
         - "*.microsoftonline.com"
         - "*.microsoft.com"
