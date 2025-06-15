@@ -78,6 +78,23 @@ const CABChangeRequestModal = ({
     ChangeRequestFormDataState.error = validateChangeRequestForm();
   };
 
+  const { data: projectData } = trpcReact.rest.getProjectByID.useQuery(
+    formData.projectId || "",
+    { enabled: !!formData.projectId }
+  );
+  const { data: issueObjects = [] } = trpcReact.rest.getIssuesById.useQuery(
+    (formData.issueIds ?? []).map((u) => {
+      return u;
+    }),
+    { enabled: formData.issueIds?.length > 0 }
+  );
+  const { data: userObjects = [] } = trpcReact.rest.getUsersByIds.useQuery(
+    (formData.requiredApprovals ?? []).map((u) => {
+      return u;
+    }),
+    { enabled: formData.requiredApprovals?.length > 0 }
+  );
+
   const handleSubmit = () => {
     function omit<T extends object, K extends keyof T>(
       obj: T,
@@ -324,31 +341,30 @@ const CABChangeRequestModal = ({
             <div className="mb-4">
               <div className="text-sm text-gray-500">Project</div>
               <div className="font-medium text-gray-900">
-                {formData.projectId || (
-                  <span className="italic text-gray-400">N/A</span>
+                {projectData?.name || (
+                  <span className="italic text-gray-400">-</span>
                 )}
               </div>
             </div>
             <div className="mb-4">
               <div className="text-sm text-gray-500">Issues</div>
               <div className="font-medium text-gray-900">
-                {formData.issueIds && formData.issueIds.length > 0 ? (
-                  formData.issueIds.join(", ")
+                {issueObjects.length > 0 ? (
+                  issueObjects.map((issue) => issue.key || issue.id).join(", ")
                 ) : (
-                  <span className="italic text-gray-400">N/A</span>
+                  <span className="italic text-gray-400">-</span>
                 )}
               </div>
             </div>
             <div className="mb-4">
               <div className="text-sm text-gray-500">Approvals</div>
               <div className="font-medium text-gray-900">
-                {formData.requiredApprovals &&
-                formData.requiredApprovals.length > 0 ? (
-                  formData.requiredApprovals
-                    .map((u: any) => u.displayName || u)
+                {userObjects.length > 0 ? (
+                  userObjects
+                    .map((u) => u.displayName || u.accountId)
                     .join(", ")
                 ) : (
-                  <span className="italic text-gray-400">N/A</span>
+                  <span className="italic text-gray-400">-</span>
                 )}
               </div>
             </div>
