@@ -107,11 +107,25 @@ declare global {
   type Meetings = {
     id: string;
     title: string;
+    changeRequest: ChangeRequest;
+    description: string;
+    date: string;
+    attendees: User[];
+    notes: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  
+  type MeetingsStorage = {
+    id: string;
+    title: string;
     changeRequestId: string;
     description: string;
     date: string;
     attendees: string[];
     notes: string;
+    createdAt: string;
+    updatedAt: string;
   };
 
   type Project = {

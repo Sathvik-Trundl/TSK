@@ -69,9 +69,11 @@ permissions:
       - "*.atl-paas.net"
       - "*.atlassian.com"
       - "*.atlassian.net"
-    scripts:
-      - "*.released.so"
-    fonts:
-      - "*.released.so"
-    styles:
-      - "*.released.so"
+    fetch:
+      client:
+        - "*.microsoftonline.com"
+        - "*.microsoft.com"
+        - "*.released.so"
+      backend:
+        - "*.microsoftonline.com"
+        - "*.microsoft.com"

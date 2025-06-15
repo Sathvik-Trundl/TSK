@@ -2,9 +2,12 @@ import Link from "@components/appEssentials/Link";
 import Button from "@atlaskit/button/new";
 import { PhoneCall, Plus } from "lucide-react";
 import { globalPageStore } from "@libs/store";
+import { trpcReact } from "@trpcClient/index";
 const isUserLoggedIn = true;
 
 export default function Navigation() {
+  const meet = trpcReact.meetings.run.useQuery();
+
   return (
     <nav className="flex items-center justify-between w-full h-12 px-4">
       <Link href="/">
@@ -15,6 +18,7 @@ export default function Navigation() {
           <Button
             appearance="discovery"
             iconBefore={(iconProps) => <PhoneCall {...iconProps} height={18} />}
+            onClick={() => meet.refetch()}
           >
             Create Meet
           </Button>

@@ -83,19 +83,6 @@ export const dummyComments: RequestComment[] = [
   },
 ];
 
-// Dummy Meetings
-export const dummyMeetings: Meetings[] = [
-  {
-    id: "m-001",
-    title: "Change Review Call",
-    changeRequestId: dummyChangeRequestIds[0],
-    description: "Discuss details of the proposed DB schema change.",
-    date: "2025-06-15T15:00:00Z",
-    attendees: [dummyUsers[0].accountId, dummyUsers[1].accountId],
-    notes: "Risk assessment done. Awaiting final sign-off.",
-  },
-];
-
 // Dummy ChangeRequestStorage (for storage layer)
 export const dummyChangeRequestStorage: ChangeRequestStorage[] = [
   {
@@ -247,4 +234,16 @@ export const dummyChangeRequests: ChangeRequest[] = [
   },
 ];
 
-
+export const dummyMeetings: Meetings[] = [
+  {
+    id: "m-001",
+    title: "Change Review Call",
+    changeRequest: dummyChangeRequests[0],
+    description: "Discuss details of the proposed DB schema change.",
+    date: "2025-06-15T15:00:00Z",
+    attendees: [dummyUsers[0], dummyUsers[1]],
+    notes: "Risk assessment done. Awaiting final sign-off.",
+    createdAt: "2025-06-14T10:00:00Z",
+    updatedAt: "2025-06-15T15:00:00Z",
+  },
+];
