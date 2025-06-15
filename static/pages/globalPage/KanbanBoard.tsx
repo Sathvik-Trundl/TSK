@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   DragDropContext,
   Droppable,
@@ -27,6 +27,7 @@ const KanbanBoard = () => {
   const [selectedRequest, setSelectedRequest] = useState<ChangeRequest | null>(
     null
   );
+  const [localRequests, setLocalRequests] = useState<ChangeRequest[]>([]);
 
   const { mutate: onPhaseChange } =
     trpcReact.globalPage.changePhase.useMutation();
@@ -34,61 +35,73 @@ const KanbanBoard = () => {
     trpcReact.globalPage.approveChangeRequest.useMutation();
   const rejectChangeRequest =
     trpcReact.globalPage.rejectChangeRequest.useMutation();
-
-  const { data: requests } =
+  const { data: requests, refetch } =
     trpcReact.globalPage.getAllChangeRequests.useQuery();
 
-  const handleDragEnd = (result: DropResult) => {
-    const { draggableId, destination } = result;
-    if (!destination || !requests) return;
-
-    const newPhase = destination.droppableId as Phase;
-    const dragged = requests.find((r) => r.id === draggableId);
-    if (dragged && dragged.phase !== newPhase) {
-      onPhaseChange({ id: dragged.id, phase: newPhase });
-    }
-  };
-
-  const handleApprove = (id: string) => {
-    approveChangeRequest.mutate(id, {
-      onSuccess: () => {
-        // refetchRequests();
-      },
-      onError: (err) => {
-        console.error("Approval failed:", err);
-      },
-    });
-  };
-
-  const handleReject = (id: string) => {
-    rejectChangeRequest.mutate(id, {
-      onError: (err) => {
-        console.error("Rejection failed:", err);
-      },
-    });
-  };
+  // Sync local requests with fetched ones
+  useEffect(() => {
+    if (requests) setLocalRequests(requests);
+  }, [requests]);
 
   const grouped = useMemo(() => {
-    // Always build map using PHASES for guaranteed columns
     const map = PHASES.reduce((acc, phase) => {
       acc[phase] = [];
       return acc;
     }, {} as Record<Phase, ChangeRequest[]>);
 
-    if (requests) {
-      for (const r of requests) {
-        if (PHASES.includes(r.phase as Phase)) {
-          map[r.phase as Phase].push(r);
-        } else {
-          console.warn(`Unknown phase: ${r.phase}`);
-        }
+    localRequests.forEach((r) => {
+      if (PHASES.includes(r.phase as Phase)) {
+        map[r.phase as Phase].push(r);
+      } else {
+        console.warn(`Unknown phase: ${r.phase}`);
       }
-    }
+    });
 
     return map;
-  }, [requests]);
+  }, [localRequests]);
 
-  if (!requests) return <div></div>;
+  const handleDragEnd = (result: DropResult) => {
+    const { draggableId, destination, source } = result;
+    if (!destination) return;
+
+    const fromPhase = source.droppableId as Phase;
+    const toPhase = destination.droppableId as Phase;
+
+    const fromIdx = PHASES.indexOf(fromPhase);
+    const toIdx = PHASES.indexOf(toPhase);
+
+    // Only allow forward movement
+    if (toIdx <= fromIdx) return;
+
+    const dragged = localRequests.find((r) => r.id === draggableId);
+    if (!dragged || dragged.phase === toPhase) return;
+
+    // Optimistic update for real-time UI
+    setLocalRequests((prev) =>
+      prev.map((r) => (r.id === dragged.id ? { ...r, phase: toPhase } : r))
+    );
+
+    // Persist to backend
+    onPhaseChange(
+      { id: dragged.id, phase: toPhase },
+      {
+        onError: () => {
+          // Rollback on error
+          setLocalRequests((prev) =>
+            prev.map((r) =>
+              r.id === dragged.id ? { ...r, phase: fromPhase } : r
+            )
+          );
+        },
+        onSuccess: () => {
+          // Optionally refetch if needed
+          // refetch();
+        },
+      }
+    );
+  };
+
+  if (!requests) return <div>Loading...</div>;
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
@@ -125,22 +138,24 @@ const KanbanBoard = () => {
                         <div className="text-sm text-gray-600 my-1">
                           <PhaseLozenge phase={req.phase} />
                         </div>
-                        {req.phase === "Validation Pending" && (
+                        {/* {req.phase === "Validation Pending" && (
                           <div className="flex gap-2 mt-2">
                             <button
-                              onClick={() => handleApprove(req.id)}
+                              onClick={() =>
+                                approveChangeRequest.mutate(req.id)
+                              }
                               className="text-xs bg-green-500 text-white px-2 py-1 rounded flex items-center gap-1"
                             >
                               <Check size={14} /> Approve
                             </button>
                             <button
-                              onClick={() => handleReject(req.id)}
+                              onClick={() => rejectChangeRequest.mutate(req.id)}
                               className="text-xs bg-red-500 text-white px-2 py-1 rounded flex items-center gap-1"
                             >
-                              <X size={14} /> Reject
+                            <X size={14} /> Reject
                             </button>
                           </div>
-                        )}
+                        )} */}
                       </div>
                     )}
                   </Draggable>
@@ -161,4 +176,5 @@ const KanbanBoard = () => {
     </DragDropContext>
   );
 };
+
 export default KanbanBoard;
