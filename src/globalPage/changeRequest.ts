@@ -21,11 +21,13 @@ export const changeRequest = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const userId = ctx.accountId!;
-      const id = crypto.randomUUID();
-      const now = DateTime.now().toISO();
 
-      const statement = sql.prepare(`
+      try {
+        const userId = ctx.accountId!;
+        const id = crypto.randomUUID();
+        const now = DateTime.now().toISO();
+
+        const statement = sql.prepare(`
         INSERT INTO ChangeRequests (
           id, title, requestedBy, description, reason, impact,
           validationStatus, approvalStatus, phase, projectId, requiredApprovals,
@@ -33,28 +35,31 @@ export const changeRequest = router({
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
-      await statement
-        .bindParams(
-          id,
-          input.title,
-          userId,
-          input.description,
-          input.reason,
-          input.impact,
-          "Pending",
-          "Pending",
-          "Draft",
-          input.projectId,
-          JSON.stringify(input.requiredApprovals),
-          JSON.stringify(input.issueIds),
-          input.additionalInfo ?? "",
-          "",
-          now,
-          now
-        )
-        .execute();
+        await statement
+          .bindParams(
+            id,
+            input.title,
+            userId,
+            input.description,
+            input.reason,
+            input.impact,
+            "Pending", // validation status
+            "Pending", // approval status
+            "Validation Pending", // phase
+            input.projectId,
+            JSON.stringify(input.requiredApprovals),
+            JSON.stringify(input.issueIds),
+            input.additionalInfo ?? "",
+            "",
+            now,
+            now
+          )
+          .execute();
 
-      return { success: true, id };
+        return { success: true, id };
+      } catch (error) {
+        console.log({ error });
+      }
     }),
 
   // Read a single change request by ID
@@ -74,6 +79,7 @@ export const changeRequest = router({
       ]);
       const projects = await getProjectsByIds([request.projectId]);
 
+      // need to add comments here
       return {
         ...request,
         requestedBy: users.find((u) => u.accountId === request.requestedBy),
@@ -175,6 +181,38 @@ export const changeRequest = router({
     .mutation(async ({ input }) => {
       const statement = sql.prepare("DELETE FROM ChangeRequests WHERE id = ?");
       await statement.bindParams(input.id).execute();
+      return { success: true };
+    }),
+
+  approveChangeRequest: procedure
+    .input(z.string())
+    .mutation(async ({ input }) => {
+      const statement = sql.prepare(`
+      UPDATE ChangeRequests
+      SET approvalStatus = ?, phase = ?, updatedAt = ?
+      WHERE id = ?
+    `);
+
+      await statement
+        .bindParams("Approved", "Approved", DateTime.now().toISO(), input)
+        .execute();
+
+      return { success: true };
+    }),
+
+  rejectChangeRequest: procedure
+    .input(z.string())
+    .mutation(async ({ input }) => {
+      const statement = sql.prepare(`
+      UPDATE ChangeRequests
+      SET approvalStatus = ?, phase = ?, updatedAt = ?
+      WHERE id = ?
+    `);
+
+      await statement
+        .bindParams("Rejected", "Rejected", DateTime.now().toISO(), input)
+        .execute();
+
       return { success: true };
     }),
 });

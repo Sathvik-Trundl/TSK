@@ -63,6 +63,7 @@ interface Props {
   onSelect: (request: ChangeRequest) => void;
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
+  isLoading?: boolean;
 }
 
 const StatusTable: React.FC<Props> = ({
@@ -70,10 +71,11 @@ const StatusTable: React.FC<Props> = ({
   onSelect,
   onApprove,
   onReject,
+  isLoading,
 }) => {
   const columns = React.useMemo(
     () => getColumns(onSelect, onApprove, onReject),
-    [onSelect, onApprove, onReject]
+    [onSelect, onApprove, onReject, requests]
   );
   const table = useReactTable({
     data: requests,
@@ -102,19 +104,32 @@ const StatusTable: React.FC<Props> = ({
           ))}
         </thead>
         <tbody>
-          {table.getRowModel().rows.map((row) => (
-            <tr key={row.id} className="hover:bg-gray-200 dark:hover:bg-gray-600/20 transition">
-              {row.getVisibleCells().map((cell) => (
-                <td
-                  key={cell.id}
-                  className="px-6 py-4 whitespace-nowrap text-base text-gray-700"
-                >
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
+          {isLoading ? (
+            <tr>
+              <td
+                colSpan={columns.length}
+                className="py-8 text-center text-gray-400 text-lg font-medium"
+              >
+                Loading requests...
+              </td>
             </tr>
-          ))}
-          {requests.length === 0 && (
+          ) : table.getRowModel().rows.length > 0 ? (
+            table.getRowModel().rows.map((row) => (
+              <tr
+                key={row.id}
+                className="hover:bg-gray-200 dark:hover:bg-gray-600/20 transition"
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <td
+                    key={cell.id}
+                    className="px-6 py-4 whitespace-nowrap text-base text-gray-700"
+                  >
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            ))
+          ) : (
             <tr>
               <td
                 colSpan={columns.length}

@@ -15,25 +15,27 @@ import {
 import { trpcReact } from "@trpcClient/index";
 
 // Replace with your actual ChangeRequestForm type!
-type ChangeRequestForm = {
-  title: string;
-  description: string;
-  reason: string;
-  impact: string;
-  additionalInfo: string;
-  projectId: string | null;
-  issueIds: string[];
-  requiredApprovals: any[];
-};
+// type ChangeRequestForm = {
+//   title: string;
+//   description: string;
+//   reason: string;
+//   impact: string;
+//   additionalInfo: string;
+//   projectId: string | null;
+//   issueIds: string[];
+//   requiredApprovals: any[];
+// };
 
 interface CABChangeRequestModalProps {
   isOpen: boolean;
   onClose: () => void;
+  refetchRequests: () => void;
 }
 
 const CABChangeRequestModal = ({
   isOpen,
   onClose,
+  refetchRequests,
 }: CABChangeRequestModalProps): JSX.Element | null => {
   const formData = useSnapshot(ChangeRequestFormDataState);
   const sqlMutation = trpcReact.globalPage.createChangeRequest.useMutation();
@@ -43,19 +45,23 @@ const CABChangeRequestModal = ({
   };
 
   const handleSubmit = () => {
-    let changeForm = JSON.parse(JSON.stringify(formData)) as ChangeRequestForm;
+    let changeForm = JSON.parse(
+      JSON.stringify(formData)
+    ) as ChangeRequestStorage;
     changeForm = {
       ...changeForm,
       projectId: changeForm.projectId,
       issueIds: changeForm.issueIds?.map((item) => item.toString()) ?? [],
     };
+
     sqlMutation.mutate(changeForm, {
       onSuccess: () => {
         // Optionally: show toast or notification
+        refetchRequests();
       },
     });
-    // resetChangeRequestFormData();
-    // onClose();
+    resetChangeRequestFormData();
+    onClose();
   };
 
   const handleCancel = () => {

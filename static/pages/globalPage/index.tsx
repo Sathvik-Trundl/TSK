@@ -9,7 +9,9 @@ import { globalPageStore } from "@libs/store";
 import StatusTable from "@components/globalPage/StatusTable";
 import RequestDetailModal from "@components/globalPage/RequestDetailModal";
 import CABChangeRequestModal from "@components/globalPage/CABChangeRequestModal";
-import { dummyChangeRequests } from "./changeRequestsData";
+// import { dummyChangeRequests } from "./changeRequestsData";
+import { trpcReact } from "@trpcClient/index";
+import { Loader } from "lucide-react";
 
 const HomePage: React.FC = () => {
   const globalSnap = useSnapshot(globalPageStore);
@@ -17,20 +19,42 @@ const HomePage: React.FC = () => {
     null
   );
 
-  // const { data: requests, isLoading } =
-  //   trpcReact.globalPage.getAllChangeRequests.useQuery();
+  const {
+    data: requests,
+    isLoading,
+    isFetching,
+    refetch: refetchRequests,
+  } = trpcReact.globalPage.getAllChangeRequests.useQuery();
 
-  const requests = dummyChangeRequests
+  const approveChangeRequest =
+    trpcReact.globalPage.approveChangeRequest.useMutation();
+  const rejectChangeRequest =
+    trpcReact.globalPage.rejectChangeRequest.useMutation();
 
+  console.log({ isFetching });
   const handleApprove = (id: string) => {
-    console.log(id);
+    approveChangeRequest.mutate(id, {
+      onSuccess: () => {
+        refetchRequests();
+      },
+      onError: (err) => {
+        console.error("Approval failed:", err);
+      },
+    });
   };
 
   const handleReject = (id: string) => {
-    console.log(id);
+    rejectChangeRequest.mutate(id, {
+      onSuccess: () => {
+        refetchRequests();
+      },
+      onError: (err) => {
+        console.error("Rejection failed:", err);
+      },
+    });
   };
 
-  // if (isLoading) return <Loader type="full" />;
+  if (isLoading) return <Loader type="full" />;
 
   console.log(requests);
 
@@ -51,6 +75,7 @@ const HomePage: React.FC = () => {
                 onSelect={setSelectedRequest}
                 onApprove={handleApprove}
                 onReject={handleReject}
+                isLoading={isFetching}
               />
             )}
           </Card>
@@ -63,6 +88,7 @@ const HomePage: React.FC = () => {
       <CABChangeRequestModal
         isOpen={globalSnap.openRequestModal}
         onClose={() => (globalPageStore.openRequestModal = false)}
+        refetchRequests={refetchRequests}
       />
     </div>
   );
