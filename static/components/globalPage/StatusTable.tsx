@@ -247,7 +247,7 @@ const StatusTable: React.FC<StatusTableProps> = ({
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
-                    className="px-4 py-3 text-left text-xs font-bold dark:text-gray-300 text-gray-600 uppercase tracking-wider dark:bg-gray-700/80"
+                    className="px-4 py-3 text-left text-xs font-bold dark:text-gray-300 text-gray-600 uppercase tracking-wider bg-gray-300/30 dark:bg-gray-700/80"
                   >
                     {flexRender(
                       header.column.columnDef.header,

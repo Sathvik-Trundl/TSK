@@ -39,6 +39,10 @@ async function createOnlineMeeting(
     attendees: meetingInput.attendees,
     start: meetingInput.start,
     end: meetingInput.end,
+    body: {
+      contentType: "html", // or "text"
+      content: meetingInput.notes || "Agenda will be shared soon.",
+    },
   };
 
   const response = await fetch(apiUrl, {
