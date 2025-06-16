@@ -244,7 +244,6 @@ const KanbanBoard = () => {
                               </div>
                             </div>
 
-                            {/* Bottom: Approve/Reject buttons if not Approved and user is Approver */}
                             {req.phase !== "Approved" && req.isApprover && (
                               <div className="flex gap-2 mt-1">
                                 <button
