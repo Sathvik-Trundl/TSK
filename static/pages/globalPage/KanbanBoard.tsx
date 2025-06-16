@@ -12,12 +12,6 @@ import RequestDetailModal from "@components/globalPage/RequestDetailModal";
 import Navigation from "@components/globalPage/Navigation";
 import Loader from "@components/Loader";
 
-interface ChangeRequest {
-  id: string;
-  title: string;
-  phase: Phase;
-}
-
 const PHASES: Phase[] = [
   "Validation Pending",
   "In-Progress",
@@ -57,18 +51,21 @@ const KanbanBoard = () => {
     );
   };
 
-  const handleReject = (id: string) => {
+  const handleReject = (id: string, currentPhase: Phase) => {
     setLocalRequests((prev) =>
       prev.map((r) => (r.id === id ? { ...r, phase: "Rejected" } : r))
     );
-    rejectChangeRequest.mutate(id, {
-      onSuccess: () => {
-        // refetchRequests();
-      },
-      onError: (err) => {
-        console.error("Rejection failed:", err);
-      },
-    });
+    rejectChangeRequest.mutate(
+      { id, currentPhase },
+      {
+        onSuccess: () => {
+          // refetchRequests();
+        },
+        onError: (err) => {
+          console.error("Rejection failed:", err);
+        },
+      }
+    );
   };
 
   // Sync local requests with fetched ones
@@ -89,6 +86,8 @@ const KanbanBoard = () => {
         console.warn(`Unknown phase: ${r.phase}`);
       }
     });
+
+    console.log({ map });
 
     return map;
   }, [localRequests]);
@@ -139,6 +138,7 @@ const KanbanBoard = () => {
   return (
     <div className="flex flex-col">
       <Navigation />
+      
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="flex gap-6 overflow-x-auto p-4 justify-center h-[calc(100vh-120px)]">
           {PHASES.map((phase) => (
@@ -148,7 +148,9 @@ const KanbanBoard = () => {
                   ref={provided.innerRef}
                   {...provided.droppableProps}
                   className={`flex flex-col min-w-[280px] w-[300px] border bg-blue-500/10 border-gray-200 rounded-lg p-4 shadow-sm transition ${
-                    snapshot.isDraggingOver ? "bg-blue-500/60 dark:bg-blue-500/40" : ""
+                    snapshot.isDraggingOver
+                      ? "bg-blue-500/60 dark:bg-blue-500/40"
+                      : ""
                   }`}
                 >
                   <h3 className="text-md font-bold text-gray-700 mb-4 dark:text-white">
@@ -162,19 +164,66 @@ const KanbanBoard = () => {
                           ref={dragProvided.innerRef}
                           {...dragProvided.draggableProps}
                           {...dragProvided.dragHandleProps}
-                          className="bg-white border border-gray-300 p-3 mb-3 rounded-md shadow hover:shadow-md transition"
+                          className="bg-white border border-gray-300 p-3 mb-3 rounded-md shadow hover:shadow-md transition flex flex-col gap-2"
                         >
-                          <button
-                            onClick={() => setSelectedRequest(req)}
-                            className="text-blue-600 font-medium hover:underline"
-                          >
-                            {req.title}
-                          </button>
-                          <div className="text-sm text-gray-600 my-1">
-                            <PhaseLozenge phase={req.phase} />
+                          {/* Top: Title */}
+                          <div>
+                            <button
+                              onClick={() => setSelectedRequest(req)}
+                              className="text-blue-600 font-medium hover:underline text-left"
+                            >
+                              {req.title}
+                            </button>
                           </div>
+
+                          {/* Middle: Phase + Approver Avatars */}
+                          <div className="flex items-center gap-2 justify-between">
+                            <PhaseLozenge phase={req.phase} />
+                            <div className="flex -space-x-2 self-end justify-end">
+                              {req.requiredApprovals?.length > 3 ? (
+                                <>
+                                  {req.requiredApprovals
+                                    .slice(0, 2)
+                                    .map((user) => (
+                                      <img
+                                        key={user.accountId}
+                                        src={user.avatarUrls["48x48"]}
+                                        alt={user.displayName}
+                                        title={user.displayName}
+                                        className="w-6 h-6 rounded-full border-2 border-white shadow"
+                                      />
+                                    ))}
+                                  <div
+                                    className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold border-2 border-white shadow"
+                                    title={req.requiredApprovals
+                                      .slice(2)
+                                      .map((user) => user.displayName)
+                                      .join(", ")}
+                                  >
+                                    +{req.requiredApprovals.length - 2}
+                                  </div>
+                                </>
+                              ) : req.requiredApprovals?.length > 0 ? (
+                                req.requiredApprovals.map((user) => (
+                                  <img
+                                    key={user.accountId}
+                                    src={user.avatarUrls["48x48"]}
+                                    alt={user.displayName}
+                                    title={user.displayName}
+                                    className="w-6 h-6 rounded-full border-2 border-white shadow"
+                                  />
+                                ))
+                              ) : (
+                                <span className="text-gray-400 text-xs">
+                                  No approvers
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Bottom: Approve/Reject buttons if not Approved and user is Approver */}
                           {req.phase !== "Approved" && req.isApprover && (
-                            <div className="flex gap-2 mt-2">
+                            <div className="flex gap-2 mt-1">
                               <button
                                 onClick={() => handleApprove(req.id, req.phase)}
                                 className="text-xs bg-green-500 text-white px-2 py-1 rounded flex items-center gap-1"
@@ -182,7 +231,7 @@ const KanbanBoard = () => {
                                 <Check size={14} /> Approve
                               </button>
                               <button
-                                onClick={() => handleReject(req.id)}
+                                onClick={() => handleReject(req.id, req.phase)}
                                 className="text-xs bg-red-500 text-white px-2 py-1 rounded flex items-center gap-1"
                               >
                                 <X size={14} /> Reject
