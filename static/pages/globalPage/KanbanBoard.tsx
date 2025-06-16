@@ -41,6 +41,9 @@ const KanbanBoard = () => {
     trpcReact.globalPage.getAllChangeRequests.useQuery();
 
   const handleApprove = (id: string, currentPhase: Phase) => {
+    setLocalRequests((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, phase: "Approved" } : r))
+    );
     approveChangeRequest.mutate(
       { id, currentPhase },
       {
@@ -55,7 +58,13 @@ const KanbanBoard = () => {
   };
 
   const handleReject = (id: string) => {
+    setLocalRequests((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, phase: "Rejected" } : r))
+    );
     rejectChangeRequest.mutate(id, {
+      onSuccess: () => {
+        // refetchRequests();
+      },
       onError: (err) => {
         console.error("Rejection failed:", err);
       },
@@ -164,7 +173,7 @@ const KanbanBoard = () => {
                           <div className="text-sm text-gray-600 my-1">
                             <PhaseLozenge phase={req.phase} />
                           </div>
-                          {req.phase === "Validation Pending" && (
+                          {req.phase !== "Approved" && req.isApprover && (
                             <div className="flex gap-2 mt-2">
                               <button
                                 onClick={() => handleApprove(req.id, req.phase)}
