@@ -197,14 +197,12 @@ export const meetingsRouter = router({
     const now = DateTime.now();
     const upcoming = meetings
       .filter((m) => DateTime.fromISO(m.start.dateTime) > now)
-      .sort(
-        (a, b) =>
-          DateTime.fromISO(a.start.dateTime).toMillis() -
-          DateTime.fromISO(b.start.dateTime).toMillis()
-      )
-      .slice(0, 5);
+      .sort((a, b) =>
+        DateTime.fromISO(a.start.dateTime).toMillis() -
+        DateTime.fromISO(b.start.dateTime).toMillis()
+      );
 
-    return { results: upcoming };
+    return { results: upcoming.slice(0, 5) };
   }),
   getMyMeetings: procedure.query(async ({ ctx }) => {
     if (!ctx.accountId) throw new Error("User not authenticated");

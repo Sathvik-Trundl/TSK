@@ -51,28 +51,30 @@ export default function Navigation() {
       </div>
 
       {/* Right: Actions */}
-      <div className="flex items-center gap-3 ml-auto z-10">
-        <Button
-          appearance="discovery"
-          iconBefore={(iconProps) => <PhoneCall {...iconProps} size={18} />}
-          onClick={() => {
-            globalPageStore.openMeetModal = true;
-          }}
-        >
-          Create Meet
-        </Button>
-        <Button
-          name="Create Request"
-          appearance="primary"
-          iconBefore={(iconProps) => <Plus {...iconProps} size={18} />}
-          onClick={() => {
-            globalPageStore.openRequestModal = true;
-            globalPageStore.requestModalMode = "create";
-          }}
-        >
-          Create Request
-        </Button>
-      </div>
+      {location.pathname == "/" && (
+        <div className="flex items-center gap-3 ml-auto z-10">
+          <Button
+            appearance="discovery"
+            iconBefore={(iconProps) => <PhoneCall {...iconProps} size={18} />}
+            onClick={() => {
+              globalPageStore.openMeetModal = true;
+            }}
+          >
+            Create Meet
+          </Button>
+          <Button
+            name="Create Request"
+            appearance="primary"
+            iconBefore={(iconProps) => <Plus {...iconProps} size={18} />}
+            onClick={() => {
+              globalPageStore.openRequestModal = true;
+              globalPageStore.requestModalMode = "create";
+            }}
+          >
+            Create Request
+          </Button>
+        </div>
+      )}
     </nav>
   );
 }
