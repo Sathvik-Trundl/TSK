@@ -33,7 +33,7 @@ export const changeRequest = router({
           id, title, requestedBy, description, reason, impact,
           validationStatus, approvalStatus, phase, projectId, requiredApprovals,
           issueIds, additionalInfo, createdAt, updatedAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
         await statement

@@ -46,7 +46,7 @@ function getButtons(
   onEdit: (request: ChangeRequestForm) => void,
   onDelete: (id: string) => void
 ): ButtonDef[] {
-  const phase = row.phase?.toLowerCase();
+  const phase = row.phase.toLowerCase()
   const approver = row?.approver;
 
   const handlers = {
@@ -77,7 +77,11 @@ function getButtons(
     },
   ];
 
-  if (phase === "validation pending" && approver) {
+  if (
+    (phase.toLowerCase() === "validation pending".toLowerCase() ||
+      phase.toLowerCase() === "In-Progress".toLowerCase()) &&
+    approver
+  ) {
     btns = [
       {
         key: "approve",
@@ -150,7 +154,7 @@ function getColumns(
       cell: (info) => (
         <button
           onClick={() => onSelect(info.row.original)}
-          className="dark:text-blue-500 text-blue-600 font-semibold hover:underline transition w-full text-left truncate"
+          className="dark:text-sky-500 text-blue-600 font-semibold hover:underline transition w-full text-left truncate"
         >
           {info.getValue() as string}
         </button>
@@ -229,7 +233,7 @@ const StatusTable: React.FC<StatusTableProps> = ({
   });
 
   return (
-    <div className="rounded-2xl shadow-lg border border-gray-200 overflow-x-auto bg-white dark:bg-gray-900">
+    <div className="rounded-md shadow-lg border border-gray-200 overflow-x-auto bg-white dark:bg-gray-700/20">
       <AnimatePresence>
         <table className="min-w-full table-fixed">
           <colgroup>
@@ -243,7 +247,7 @@ const StatusTable: React.FC<StatusTableProps> = ({
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
-                    className="px-4 py-3 text-left text-xs font-bold dark:text-gray-300 text-gray-600 uppercase tracking-wider"
+                    className="px-4 py-3 text-left text-xs font-bold dark:text-gray-300 text-gray-600 uppercase tracking-wider dark:bg-gray-700/80"
                   >
                     {flexRender(
                       header.column.columnDef.header,

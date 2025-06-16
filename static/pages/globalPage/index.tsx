@@ -89,14 +89,6 @@ const HomePage: React.FC = () => {
       </div>
       <div className="max-w-[90%] mx-auto rounded-xl shadow-md p-6 relative">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-          <Card title="Upcoming Meetings">
-            {upcomingMeetings && (
-              <MeetingsTable meetings={upcomingMeetings.results} />
-            )}
-          </Card>
-          <Card title="My Meetings">
-            {myMeetings && <MeetingsTable meetings={myMeetings.results} />}
-          </Card>
           <Card title="Requests Status">
             {requests && (
               <StatusTable
@@ -109,8 +101,17 @@ const HomePage: React.FC = () => {
               />
             )}
           </Card>
+          <Card title="Upcoming Meetings">
+            {upcomingMeetings && (
+              <MeetingsTable meetings={upcomingMeetings.results} />
+            )}
+          </Card>
+          <Card title="My Meetings">
+            {myMeetings && <MeetingsTable meetings={myMeetings.results} />}
+          </Card>
         </div>
       </div>
+
       <RequestDetailModal
         request={selectedRequest}
         onClose={() => setSelectedRequest(null)}
