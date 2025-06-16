@@ -65,7 +65,10 @@ export default function Navigation() {
           name="Create Request"
           appearance="primary"
           iconBefore={(iconProps) => <Plus {...iconProps} size={18} />}
-          onClick={() => (globalPageStore.openRequestModal = true)}
+          onClick={() => {
+            globalPageStore.openRequestModal = true;
+            globalPageStore.requestModalMode = "create";
+          }}
         >
           Create Request
         </Button>
@@ -73,4 +76,3 @@ export default function Navigation() {
     </nav>
   );
 }
-

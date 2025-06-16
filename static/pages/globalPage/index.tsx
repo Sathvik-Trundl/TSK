@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Navigation from "../../components/globalPage/Navigation";
 import Card from "@components/globalPage/Card";
 import { useSnapshot } from "valtio";
-import { globalPageStore } from "@libs/store";
+import { ChangeRequestFormDataState, globalPageStore } from "@libs/store";
 import Loader from "@components/Loader";
 import StatusTable from "@components/globalPage/StatusTable";
 import RequestDetailModal from "@components/globalPage/RequestDetailModal";
@@ -49,15 +49,35 @@ const HomePage: React.FC = () => {
     );
   };
 
-  const handleReject = (id: string) => {
-    rejectChangeRequest.mutate(id, {
-      onSuccess: () => {
-        refetchRequests();
-      },
-      onError: (err) => {
-        console.error("Rejection failed:", err);
-      },
-    });
+  const handleReject = (id: string, currentPhase: string) => {
+    rejectChangeRequest.mutate(
+      { id, currentPhase },
+      {
+        onSuccess: () => {
+          refetchRequests();
+        },
+        onError: (err) => {
+          console.error("Rejection failed:", err);
+        },
+      }
+    );
+  };
+
+  const handleEdit = (requestForm: ChangeRequestForm) => {
+    globalPageStore.requestModalMode = "edit";
+    globalPageStore.openRequestModal = true;
+
+    ChangeRequestFormDataState.id = requestForm.id;
+    ChangeRequestFormDataState.title = requestForm.title;
+    ChangeRequestFormDataState.description = requestForm.description;
+    ChangeRequestFormDataState.impact = requestForm.impact;
+    ChangeRequestFormDataState.reason = requestForm.reason;
+    ChangeRequestFormDataState.projectId = requestForm.projectId;
+    ChangeRequestFormDataState.requestedBy = requestForm.requestedBy;
+    ChangeRequestFormDataState.additionalInfo = requestForm.additionalInfo;
+    ChangeRequestFormDataState.issueIds = requestForm.issueIds;
+    ChangeRequestFormDataState.requiredApprovals =
+      requestForm.requiredApprovals;
   };
 
   if (isLoading) return <Loader type="full" />;
@@ -84,6 +104,7 @@ const HomePage: React.FC = () => {
                 onSelect={setSelectedRequest}
                 onApprove={handleApprove}
                 onReject={handleReject}
+                onEdit={handleEdit}
                 isLoading={isFetching}
               />
             )}

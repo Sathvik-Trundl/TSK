@@ -71,7 +71,8 @@ const CABChangeRequestModal = ({
 }: CABChangeRequestModalProps): JSX.Element | null => {
   const viewContext = useProductContext();
   const formData = useSnapshot(ChangeRequestFormDataState);
-  const sqlMutation = trpcReact.globalPage.createChangeRequest.useMutation();
+  const creation = trpcReact.globalPage.createChangeRequest.useMutation();
+  const updation = trpcReact.globalPage.updateChangeRequest.useMutation();
 
   const handleChange = (field: keyof typeof formData, value: any) => {
     setFormField(field, value);
@@ -119,13 +120,30 @@ const CABChangeRequestModal = ({
       issueIds: formClean.issueIds?.map((item) => item.toString()) ?? [],
     };
 
-    sqlMutation.mutate(changeForm, {
-      onSuccess: () => {
-        refetchRequests();
-      },
-    });
-    resetChangeRequestFormData();
-    onClose();
+    if (!formClean.id) {
+      creation.mutate(changeForm, {
+        onSuccess: () => {
+          refetchRequests();
+          resetChangeRequestFormData();
+          onClose();
+          return;
+        },
+      });
+    }
+
+    if (formClean.id) {
+      updation.mutate(changeForm, {
+        onSuccess: () => {
+          refetchRequests();
+          resetChangeRequestFormData();
+          onClose();
+          return;
+        },
+        onError(error, variables, context) {
+          console.log({ error, variables, context });
+        },
+      });
+    }
   };
 
   const handleCancel = () => {
@@ -320,6 +338,7 @@ const CABChangeRequestModal = ({
                 appearance="primary"
                 onClick={handleSubmit}
                 isDisabled={!!formData.error}
+                isLoading={creation.isPending || updation.isPending}
               >
                 Submit
               </Button>

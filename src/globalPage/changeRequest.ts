@@ -32,7 +32,7 @@ export const changeRequest = router({
         INSERT INTO ChangeRequests (
           id, title, requestedBy, description, reason, impact,
           validationStatus, approvalStatus, phase, projectId, requiredApprovals,
-          issueIds, additionalInfo, confluenceLink, createdAt, updatedAt
+          issueIds, additionalInfo, createdAt, updatedAt
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
@@ -45,13 +45,12 @@ export const changeRequest = router({
             input.reason,
             input.impact,
             "Pending", // validation status
-            "Pending", // approval status
+            "", // approval status
             "Validation Pending", // phase
             input.projectId,
             JSON.stringify(input.requiredApprovals),
             JSON.stringify(input.issueIds),
             input.additionalInfo ?? "",
-            "",
             now,
             now
           )
@@ -187,21 +186,17 @@ export const changeRequest = router({
         }
       }
 
-      if (fields.length === 0) {
-        return { success: false, message: "No fields to update." };
-      }
-
-      values.push(input.id);
+      // Always update `updatedAt`
+      fields.push("updatedAt = ?");
+      values.push(DateTime.now().toISO());
 
       const statement = sql.prepare(`
         UPDATE ChangeRequests
-        SET ${fields.join(", ")}, updatedAt = ?
+        SET ${fields.join(", ")}
         WHERE id = ?
       `);
 
-      await statement
-        .bindParams(...values, DateTime.now().toISO(), input.id)
-        .execute();
+      await statement.bindParams(...values, input.id).execute();
 
       return { success: true };
     }),
@@ -223,32 +218,85 @@ export const changeRequest = router({
       })
     )
     .mutation(async ({ input }) => {
+      const { id, currentPhase } = input as {
+        id: string;
+        currentPhase: Phase;
+      };
+      let newPhase = currentPhase as Phase;
+      let updateField = "approvalStatus";
+
+      if (currentPhase === "Validation Pending") {
+        newPhase = "Validation Approved";
+        updateField = "validationStatus";
+      } else if (
+        currentPhase === "In-Progress" ||
+        currentPhase === "In-Discussion"
+      ) {
+        newPhase = "Approved";
+        updateField = "approvalStatus";
+      }
+
+      // If phase includes "validation", set validationStatus to Approved, otherwise approvalStatus
+      if (newPhase.includes("validation")) {
+        updateField = "validationStatus";
+      } else {
+        updateField = "approvalStatus";
+      }
+
       const statement = sql.prepare(`
       UPDATE ChangeRequests
-      SET approvalStatus = ?, phase = ?, updatedAt = ?
+      SET ${updateField} = ?, phase = ?, updatedAt = ?
       WHERE id = ?
     `);
 
-      const { id } = input;
-
       await statement
-        .bindParams("Approved", "Approved", DateTime.now().toISO(), id)
+        .bindParams("Approved", newPhase, DateTime.now().toISO(), id)
         .execute();
 
       return { success: true };
     }),
 
   rejectChangeRequest: procedure
-    .input(z.string())
+    .input(
+      z.object({
+        id: z.string(),
+        currentPhase: z.string(),
+      })
+    )
     .mutation(async ({ input }) => {
+      const { id, currentPhase } = input as {
+        id: string;
+        currentPhase: Phase;
+      };
+      let newPhase = currentPhase;
+      let updateField = "approvalStatus";
+
+      if (currentPhase === "Validation Pending") {
+        newPhase = "Validation Rejected";
+        updateField = "validationStatus";
+      } else if (
+        currentPhase === "In-Progress" ||
+        currentPhase === "In-Discussion"
+      ) {
+        newPhase = "Rejected";
+        updateField = "approvalStatus";
+      }
+
+      // If phase includes "validation", set validationStatus to Rejected, otherwise approvalStatus
+      if (newPhase.includes("validation")) {
+        updateField = "validationStatus";
+      } else {
+        updateField = "approvalStatus";
+      }
+
       const statement = sql.prepare(`
       UPDATE ChangeRequests
-      SET approvalStatus = ?, phase = ?, updatedAt = ?
+      SET ${updateField} = ?, phase = ?, updatedAt = ?
       WHERE id = ?
     `);
 
       await statement
-        .bindParams("Rejected", "Rejected", DateTime.now().toISO(), input)
+        .bindParams("Rejected", newPhase, DateTime.now().toISO(), id)
         .execute();
 
       return { success: true };

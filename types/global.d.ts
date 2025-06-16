@@ -57,7 +57,7 @@ declare global {
   type Phase =
     | "Draft"
     | "Validation Pending"
-    | "Valdation Rejected"
+    | "Validation Rejected"
     | "Validation Approved"
     | "Planned"
     | "In-Progress"
@@ -88,7 +88,6 @@ declare global {
 
   type ChangeRequestForm = Omit<
     ChangeRequestStorage,
-    | "id"
     | "createdAt"
     | "updatedAt"
     | "comments"
@@ -99,7 +98,7 @@ declare global {
     | "phase"
   >;
 
-  type ChangeRequestStatus = "Pending" | "Approved" | "Rejected";
+  type ChangeRequestStatus = "" | "Pending" | "Approved" | "Rejected";
 
   type ChangeWindowPeriod = "week" | "month" | "year";
   type ChangeWindow = `${string}_${ChangeWindowPeriod}`;

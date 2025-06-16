@@ -3,14 +3,16 @@ import { proxy } from "valtio";
 export const globalPageStore = proxy({
   openMeetModal: false,
   openRequestModal: false,
+  requestModalMode: "create" as "create" | "edit",
 });
 
 export type ChangeRequestFormData = ChangeRequestForm & { error: string } & {
   touched: Record<string, boolean>;
-};
+} & { id: string };
 
 // Initial state
 export const ChangeRequestFormDataState = proxy<ChangeRequestFormData>({
+  id: "",
   title: "",
   requestedBy: "",
   description: "",
@@ -35,6 +37,7 @@ export function setFormField<T extends keyof ChangeRequestFormData>(
 
 // Reset function
 export function resetChangeRequestFormData() {
+  ChangeRequestFormDataState.id = "";
   ChangeRequestFormDataState.title = "";
   ChangeRequestFormDataState.requestedBy = "";
   ChangeRequestFormDataState.description = "";
@@ -46,6 +49,7 @@ export function resetChangeRequestFormData() {
   ChangeRequestFormDataState.issueIds = [];
   ChangeRequestFormDataState.error = "";
   ChangeRequestFormDataState.touched = {};
+  globalPageStore.requestModalMode = "create";
 }
 
 export function validateChangeRequestForm() {
