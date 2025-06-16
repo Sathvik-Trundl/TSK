@@ -44,7 +44,20 @@ const HomePage: React.FC = () => {
           const selectedRequest = requests?.find((req) => req.id === id);
           if (selectedRequest) {
             meetingStore.changeRequest = selectedRequest;
+
+            const requestedById = selectedRequest.requestedBy?.accountId;
+            const approvalIds = (selectedRequest.requiredApprovals || []).map(
+              (user) => user.accountId
+            );
+
+            const allParticipantIds = [requestedById, ...approvalIds].filter(
+              Boolean
+            );
+
+            meetingStore.attendees = Array.from(new Set(allParticipantIds));
           }
+
+          // Open the modal
           globalPageStore.openMeetModal = true;
         },
         onError: (err) => {

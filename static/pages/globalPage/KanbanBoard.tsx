@@ -11,6 +11,8 @@ import { trpcReact } from "@trpcClient/index";
 import RequestDetailModal from "@components/globalPage/RequestDetailModal";
 import Navigation from "@components/globalPage/Navigation";
 import Loader from "@components/Loader";
+import { meetingStore } from "@libs/meetingStore";
+import { globalPageStore } from "@libs/store";
 
 const PHASES: Phase[] = [
   "Validation Pending",
@@ -43,7 +45,25 @@ const KanbanBoard = () => {
       { id, currentPhase },
       {
         onSuccess: () => {
-          // refetchRequests();
+          const selectedRequest = requests?.find((req) => req.id === id);
+          if (selectedRequest) {
+            meetingStore.changeRequest = selectedRequest;
+
+            const requestedById = selectedRequest.requestedBy?.accountId;
+            const approvalIds = (selectedRequest.requiredApprovals || []).map(
+              (user) => user.accountId
+            );
+
+            const allParticipantIds = [requestedById, ...approvalIds].filter(
+              Boolean
+            );
+
+            meetingStore.attendees = Array.from(new Set(allParticipantIds));
+          }
+
+          globalPageStore.openMeetModal = true;
+
+          console.log(globalPageStore.openMeetModal);
         },
         onError: (err) => {
           console.error("Approval failed:", err);

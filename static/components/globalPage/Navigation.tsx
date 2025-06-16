@@ -55,15 +55,17 @@ export default function Navigation() {
       {/* Right: Actions */}
       {location.pathname == "/" && (
         <div className="flex items-center gap-3 ml-auto z-10">
-          <Button
-            appearance="discovery"
-            iconBefore={(iconProps) => <PhoneCall {...iconProps} size={18} />}
-            onClick={() => {
-              globalPageStore.openMeetModal = true;
-            }}
-          >
-            Create Meet
-          </Button>
+          {false && (
+            <Button
+              appearance="discovery"
+              iconBefore={(iconProps) => <PhoneCall {...iconProps} size={18} />}
+              onClick={() => {
+                globalPageStore.openMeetModal = true;
+              }}
+            >
+              Create Meet
+            </Button>
+          )}
           <Button
             name="Create Request"
             appearance="primary"
