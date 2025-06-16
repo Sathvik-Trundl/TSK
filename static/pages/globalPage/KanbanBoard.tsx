@@ -101,14 +101,21 @@ const KanbanBoard = () => {
     }, {} as Record<Phase, ChangeRequest[]>);
 
     localRequests.forEach((r) => {
-      if (PHASES.includes(r.phase as Phase)) {
-        map[r.phase as Phase].push(r);
+      const phase = r.phase as Phase;
+
+      if (PHASES.includes(phase)) {
+        map[phase].push(r);
+
+        if (r.phase === "Validation Approved") {
+          map["In-Progress"].push({ ...r }); // clone to avoid key collision
+        }
       } else {
+        if (r.phase === "Validation Approved") {
+          map["In-Progress"].push({ ...r }); // clone to avoid key collision
+        }
         console.warn(`Unknown phase: ${r.phase}`);
       }
     });
-
-    console.log({ map });
 
     return map;
   }, [localRequests]);
