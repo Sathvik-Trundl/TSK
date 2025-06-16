@@ -68,11 +68,12 @@ const MeetingModal: React.FC<MeetingModalProps> = ({ isOpen, onClose }) => {
     saveCalendarMeet(
       { ...JSON.parse(JSON.stringify(snap)), timeZone: timeZone },
       {
-        onSuccess(data, variables, context) {
-          console.log({ data, variables, context });
+        onSuccess() {
+          resetMeeting();
+          onClose();
         },
-        onError(data, variables, context) {
-          console.log({ data, variables, context });
+        onError(data) {
+          console.log({ data });
         },
       }
     );
