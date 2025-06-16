@@ -18,6 +18,7 @@ export const CREATE_CHANGE_REQUESTS_TABLE = `
     issueIds JSON,
     additionalInfo TEXT,
     confluenceLink VARCHAR(255),
+    comments TEXT,
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
   );`;

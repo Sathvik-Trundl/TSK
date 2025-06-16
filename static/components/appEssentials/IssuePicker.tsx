@@ -51,7 +51,7 @@ const IssuePicker = ({
   }, [searchInput]);
 
   const mapToOption = (issue: any) => ({
-    label: `${issue.key}: ${issue.summary}`,
+    label: `${issue.key}: ${issue.summaryText || issue?.fields?.summary}`,
     value: issue.id,
   });
 

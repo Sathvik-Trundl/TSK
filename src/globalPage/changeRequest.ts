@@ -101,56 +101,63 @@ export const changeRequest = router({
 
   // Read all change requests
   getAllChangeRequests: procedure.query(async ({ ctx }) => {
-    const statement = sql.prepare("SELECT * FROM ChangeRequests");
-    const result = await statement.execute();
-    const requests = (result.rows as ChangeRequestStorage[]) || [];
+    try {
+      const statement = sql.prepare("SELECT * FROM ChangeRequests");
+      const result = await statement.execute();
+      const requests = (result.rows as ChangeRequestStorage[]) || [];
 
-    const userIds = new Set<string>();
-    const projectIds = new Set<string>();
+      const userIds = new Set<string>();
+      const projectIds = new Set<string>();
 
-    const user = ctx.accountId!;
-    const UMGKey = storageKeys.USER_MANAGEMENT(user);
-    const check = await storage.get(UMGKey);
+      const user = ctx.accountId!;
+      const UMGKey = storageKeys.USER_MANAGEMENT(user);
+      const check = await storage.get(UMGKey);
 
-    requests.forEach((req: any) => {
-      userIds.add(req.requestedBy);
-      req.requiredApprovals.forEach((id: string) => userIds.add(id));
-      projectIds.add(req.projectId);
+      requests.forEach((req: any) => {
+        userIds.add(req.requestedBy);
+        req.requiredApprovals.forEach((id: string) => userIds.add(id));
+        projectIds.add(req.projectId);
 
-      const commentUsers =
-        req.comments && Array.isArray(JSON.parse(req.comments))
-          ? JSON.parse(req.comments).map((c: any) => c.user)
-          : [];
-      commentUsers.forEach((id: string) => userIds.add(id));
-    });
+        const commentUsers =
+          req.comments && Array.isArray(JSON.parse(req.comments))
+            ? JSON.parse(req.comments).map((c: any) => c.user)
+            : [];
+        commentUsers.forEach((id: string) => userIds.add(id));
+      });
 
-    const users = await getUsersByIds(Array.from(userIds));
-    const projects = await getProjectsByIds(Array.from(projectIds));
+      const users = await getUsersByIds(Array.from(userIds));
+      const projects = await getProjectsByIds(Array.from(projectIds));
 
-    const userMap = new Map(users.map((u) => [u.accountId, u]));
-    const projectMap = new Map(projects.map((p) => [p.id, p]));
+      const userMap = new Map(users.map((u) => [u.accountId, u]));
+      const projectMap = new Map(projects.map((p) => [p.id, p]));
 
-    return requests.map((req: any) => {
-      const isApprover =
-        check?.projectRoles?.[req.projectId] === "Approver" ||
-        check?.projectRoles?.[req.projectId] === "Admin";
+      return requests.map((req: any) => {
+        const isApprover =
+          check?.projectRoles?.[req.projectId] === "Approver" ||
+          check?.projectRoles?.[req.projectId] === "Admin" ||
+          req.requiredApprovals?.includes(user);
 
-      return {
-        ...req,
-        requestedBy: userMap.get(req.requestedBy),
-        requiredApprovals: req.requiredApprovals.map((id: string) =>
-          userMap.get(id)
-        ),
-        isApprover,
-        project: projectMap.get(req.projectId),
-        comments: (req.comments ? JSON.parse(req.comments) : []).map(
-          (c: any) => ({
-            ...c,
-            user: userMap.get(c.user),
-          })
-        ),
-      };
-    }) as ChangeRequest[];
+        return {
+          ...req,
+          requestedBy: userMap.get(req.requestedBy),
+          requiredApprovals: req.requiredApprovals.map((id: string) =>
+            userMap.get(id)
+          ),
+          isApprover,
+          project: projectMap.get(req.projectId),
+          comments: (req.comments ? JSON.parse(req.comments) : []).map(
+            (c: any) => ({
+              ...c,
+              user: userMap.get(c.user),
+            })
+          ),
+        };
+      }) as ChangeRequest[];
+    } catch (error: any) {
+      console.error("inside error", error?.context?.debug);
+      console.log({ error });
+      return [];
+    }
   }),
 
   // Update an existing change request
