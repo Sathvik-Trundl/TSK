@@ -13,3 +13,26 @@ export const useProductContext = () => {
     queryFn: () => view.getContext(),
   });
 };
+
+// utils/formatDateTime.ts
+
+export function formatDateTime(dateTime?: string, timeZone?: string): string {
+  if (!dateTime) return "-";
+  try {
+    // Convert to Date object (supports both ISO and most standard formats)
+    const date = new Date(dateTime);
+
+    // If invalid, return as-is (could be unexpected format)
+    if (isNaN(date.getTime())) return dateTime;
+
+    // Use toLocaleString for nice formatting
+    return date.toLocaleString("en-IN", {
+      dateStyle: "medium",
+      timeStyle: "short",
+      timeZone: timeZone || "UTC",
+    });
+  } catch {
+    // Fallback in case of any error
+    return dateTime;
+  }
+}
