@@ -11,6 +11,7 @@ import CABChangeRequestModal from "@components/globalPage/CABChangeRequestModal"
 import MeetingModal from "@components/globalPage/MeetingModal";
 import { trpcReact } from "@trpcClient/index";
 import MeetingsTable from "@components/globalPage/MeetingsTable";
+import { meetingStore } from "@libs/meetingStore";
 
 const HomePage: React.FC = () => {
   const globalSnap = useSnapshot(globalPageStore);
@@ -40,6 +41,10 @@ const HomePage: React.FC = () => {
       {
         onSuccess: () => {
           refetchRequests();
+          const selectedRequest = requests?.find((req) => req.id === id);
+          if (selectedRequest) {
+            meetingStore.changeRequest = selectedRequest;
+          }
           globalPageStore.openMeetModal = true;
         },
         onError: (err) => {

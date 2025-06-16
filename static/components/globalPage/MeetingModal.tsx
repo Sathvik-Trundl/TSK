@@ -74,6 +74,7 @@ const MeetingModal: React.FC<MeetingModalProps> = ({ isOpen, onClose }) => {
         },
         onError(data) {
           console.log({ data });
+          onClose();
         },
       }
     );

@@ -47,7 +47,7 @@ function getButtons(
   onDelete: (id: string) => void
 ): ButtonDef[] {
   const phase = row.phase.toLowerCase()
-  const approver = row?.approver;
+  const approver = row?.isApprover;
 
   const handlers = {
     approve: () => onApprove(row.id, row.phase),
