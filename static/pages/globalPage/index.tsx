@@ -26,8 +26,8 @@ const HomePage: React.FC = () => {
     refetch: refetchRequests,
   } = trpcReact.globalPage.getAllChangeRequests.useQuery();
 
-  const { data: myMeetings } = trpcReact.globalPage.getMyMeetings.useQuery();
-  const { data: upcomingMeetings } =
+  const myMeetings = trpcReact.globalPage.getMyMeetings.useQuery();
+  const upcomingMeetings =
     trpcReact.globalPage.getTopFiveUpcomingMeetings.useQuery();
 
   const approveChangeRequest =
@@ -94,7 +94,11 @@ const HomePage: React.FC = () => {
       </div>
       <div className="max-w-[90%] mx-auto rounded-xl shadow-md p-6 relative">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-          <Card title="Requests Status">
+          <Card
+            title="Requests Status"
+            onClick={refetchRequests}
+            isLoading={isFetching || isLoading}
+          >
             {requests && (
               <StatusTable
                 requests={requests}
@@ -106,13 +110,25 @@ const HomePage: React.FC = () => {
               />
             )}
           </Card>
-          <Card title="Upcoming Meetings">
-            {upcomingMeetings && (
-              <MeetingsTable meetings={upcomingMeetings.results} />
+          <Card
+            title="Upcoming Meetings"
+            onClick={() => upcomingMeetings.refetch()}
+            isLoading={
+              upcomingMeetings.isLoading || upcomingMeetings.isFetching
+            }
+          >
+            {upcomingMeetings.data && (
+              <MeetingsTable meetings={upcomingMeetings.data.results} />
             )}
           </Card>
-          <Card title="My Meetings">
-            {myMeetings && <MeetingsTable meetings={myMeetings.results} />}
+          <Card
+            title="My Meetings"
+            onClick={myMeetings.refetch}
+            isLoading={myMeetings.isLoading || myMeetings.isFetching}
+          >
+            {myMeetings.data && (
+              <MeetingsTable meetings={myMeetings.data.results} />
+            )}
           </Card>
         </div>
       </div>

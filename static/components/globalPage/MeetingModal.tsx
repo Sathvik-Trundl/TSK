@@ -50,6 +50,8 @@ const MeetingModal: React.FC<MeetingModalProps> = ({ isOpen, onClose }) => {
   const fieldsDisabled = !snap.changeRequest;
   const timeZone = moment.tz.guess();
 
+  const trpcContext = trpcReact.useUtils();
+
   const { mutate: saveCalendarMeet, isPending } =
     trpcReact.globalPage.createMeeting.useMutation();
 
@@ -70,6 +72,8 @@ const MeetingModal: React.FC<MeetingModalProps> = ({ isOpen, onClose }) => {
       {
         onSuccess() {
           resetMeeting();
+          trpcContext.globalPage.getMyMeetings.refetch();
+          trpcContext.globalPage.getTopFiveUpcomingMeetings.refetch();
           onClose();
         },
         onError(data) {
