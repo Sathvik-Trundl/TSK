@@ -6,6 +6,7 @@ modules:
         function: tpk-resolver
       title: TPK CAB
       layout: blank
+      icon: resource:tpk-frontend;logo.png
       sections:
         - header: Configurations
           pages:
@@ -21,6 +22,7 @@ modules:
   jira:globalPage:
     - key: tpk-global-page
       resource: tpk-frontend
+      icon: resource:tpk-frontend;logo.png
       resolver:
         function: tpk-resolver
       title: TPK CAB

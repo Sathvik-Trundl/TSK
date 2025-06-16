@@ -147,11 +147,11 @@ const KanbanBoard = () => {
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className={`flex flex-col min-w-[280px] w-[300px] bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm transition ${
-                    snapshot.isDraggingOver ? "bg-blue-100" : ""
+                  className={`flex flex-col min-w-[280px] w-[300px] border bg-blue-500/10 border-gray-200 rounded-lg p-4 shadow-sm transition ${
+                    snapshot.isDraggingOver ? "bg-blue-500/60 dark:bg-blue-500/40" : ""
                   }`}
                 >
-                  <h3 className="text-md font-bold text-gray-700 mb-4">
+                  <h3 className="text-md font-bold text-gray-700 mb-4 dark:text-white">
                     {phase}
                   </h3>
 

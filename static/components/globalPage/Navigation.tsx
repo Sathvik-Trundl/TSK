@@ -9,14 +9,14 @@ export default function Navigation() {
   const isActive = (href: string) => location.pathname === href;
 
   return (
-    <nav className="relative flex items-center w-full h-14 px-4 bg-white border-b border-gray-100">
+    <nav className="relative flex items-center w-full h-14 px-4 border-b border-gray-100">
       {/* Left: Blue circle and TSK */}
       <div className="flex items-center z-10">
-        <div className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-lg shadow mr-2 select-none">
-          {/* Empty: Just the circle */}
+        <div className="w-10 h-10 flex items-center justify-center rounded-full font-bold text-lg shadow mr-2 select-none bg-white">
+          <img src="./logo.png" />
         </div>
-        <span className="font-bold text-lg tracking-wide text-blue-700 select-none">
-          TSK
+        <span className="font-bold text-lg tracking-wide text-[#9d70e7] select-none">
+          TPK
         </span>
       </div>
 
@@ -25,11 +25,12 @@ export default function Navigation() {
         <div className="flex gap-3">
           <Link href="/">
             <div
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium text-base transition ${
-                isActive("/")
-                  ? "bg-blue-50 text-blue-700 font-bold shadow"
-                  : "hover:bg-gray-100 text-gray-700"
-              }`}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium text-base transition-all duration-300 ease-in-out  
+          ${
+            isActive("/")
+              ? "bg-blue-50 dark:bg-blue-500/40 text-blue-700 dark:text-white font-bold shadow"
+              : "hover:bg-gray-100 text-gray-700 dark:hover:bg-blue-500/40 dark:text-white ring-1 border-elevation.surface"
+          }`}
               aria-current={isActive("/") ? "page" : undefined}
             >
               <Home size={18} /> Homepage
@@ -37,11 +38,12 @@ export default function Navigation() {
           </Link>
           <Link href="/kanban">
             <div
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium text-base transition ${
-                isActive("/kanban")
-                  ? "bg-blue-50 text-blue-700 font-bold shadow"
-                  : "hover:bg-gray-100 text-gray-700"
-              }`}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium text-base transition-all duration-300 ease-in-out
+          ${
+            isActive("/kanban")
+              ? "bg-blue-50 dark:bg-blue-500/40 text-blue-700 dark:text-white font-bold shadow"
+              : "hover:bg-gray-100 text-gray-700 dark:hover:bg-blue-500/40 dark:text-white ring-1 border-elevation.surface"
+          }`}
               aria-current={isActive("/kanban") ? "page" : undefined}
             >
               <LayoutPanelLeft size={18} /> Kanban Board
